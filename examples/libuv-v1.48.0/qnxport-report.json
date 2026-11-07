@@ -1,0 +1,3556 @@
+{
+  "tool": {
+    "name": "qnxport",
+    "version": "0.1.0",
+    "target": "QNX 8.0",
+    "qnx_docs_checked": "2026-11-06"
+  },
+  "scan": {
+    "name": "libuv-v1.48.0",
+    "source_files": 13,
+    "build_files": 1,
+    "lines": 9757,
+    "qnx_aware_files": [
+      "src/unix/fs.c"
+    ],
+    "suppressed_findings": 0
+  },
+  "summary": {
+    "by_severity": {
+      "high": 141,
+      "medium": 58,
+      "low": 12,
+      "info": 18
+    },
+    "by_base_severity": {
+      "high": 150,
+      "medium": 67,
+      "low": 12,
+      "info": 0
+    },
+    "total": 229,
+    "rules_triggered": 21,
+    "rules": {
+      "QNX008": {
+        "count": 14,
+        "files": 2,
+        "worst_severity": "high"
+      },
+      "QNX009": {
+        "count": 5,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX001": {
+        "count": 38,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX007": {
+        "count": 3,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX022": {
+        "count": 45,
+        "files": 2,
+        "worst_severity": "high"
+      },
+      "QNX012": {
+        "count": 15,
+        "files": 3,
+        "worst_severity": "high"
+      },
+      "QNX013": {
+        "count": 11,
+        "files": 3,
+        "worst_severity": "high"
+      },
+      "QNX014": {
+        "count": 10,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX030": {
+        "count": 9,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX104": {
+        "count": 1,
+        "files": 1,
+        "worst_severity": "medium"
+      },
+      "QNX023": {
+        "count": 7,
+        "files": 1,
+        "worst_severity": "medium"
+      },
+      "QNX019": {
+        "count": 31,
+        "files": 5,
+        "worst_severity": "medium"
+      },
+      "QNX034": {
+        "count": 3,
+        "files": 2,
+        "worst_severity": "medium"
+      },
+      "QNX018": {
+        "count": 4,
+        "files": 1,
+        "worst_severity": "medium"
+      },
+      "QNX025": {
+        "count": 7,
+        "files": 1,
+        "worst_severity": "medium"
+      },
+      "QNX005": {
+        "count": 6,
+        "files": 1,
+        "worst_severity": "medium"
+      },
+      "QNX151": {
+        "count": 1,
+        "files": 1,
+        "worst_severity": "medium"
+      },
+      "QNX027": {
+        "count": 2,
+        "files": 1,
+        "worst_severity": "medium"
+      },
+      "QNX026": {
+        "count": 3,
+        "files": 1,
+        "worst_severity": "medium"
+      },
+      "QNX105": {
+        "count": 12,
+        "files": 1,
+        "worst_severity": "low"
+      },
+      "QNX020": {
+        "count": 2,
+        "files": 1,
+        "worst_severity": "info"
+      }
+    },
+    "top_files": [
+      {
+        "file": "src/unix/linux.c",
+        "high_medium_findings": 131
+      },
+      {
+        "file": "src/unix/fs.c",
+        "high_medium_findings": 21
+      },
+      {
+        "file": "src/unix/core.c",
+        "high_medium_findings": 18
+      },
+      {
+        "file": "src/unix/thread.c",
+        "high_medium_findings": 16
+      },
+      {
+        "file": "src/unix/sysinfo-memory.c",
+        "high_medium_findings": 5
+      },
+      {
+        "file": "src/unix/sysinfo-loadavg.c",
+        "high_medium_findings": 3
+      },
+      {
+        "file": "src/unix/procfs-exepath.c",
+        "high_medium_findings": 1
+      },
+      {
+        "file": "src/unix/qnx.c",
+        "high_medium_findings": 1
+      },
+      {
+        "file": "CMakeLists.txt",
+        "high_medium_findings": 1
+      },
+      {
+        "file": "src/unix/process.c",
+        "high_medium_findings": 1
+      }
+    ]
+  },
+  "rules": {
+    "QNX008": {
+      "title": "CPU affinity",
+      "category": "process",
+      "base_severity": "high",
+      "confidence": "documented",
+      "why": "sched_setaffinity / pthread_setaffinity_np and the CPU_* macros have no page in the QNX 8.0 C Library Reference.",
+      "qnx_8_0": "For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify.",
+      "docs": [
+        {
+          "title": "ThreadCtl()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/threadctl.html"
+        }
+      ]
+    },
+    "QNX009": {
+      "title": "zero-copy transfer (sendfile/splice/tee)",
+      "category": "io",
+      "base_severity": "high",
+      "confidence": "verify",
+      "why": "sendfile, splice, tee and vmsplice have no page in the QNX 8.0 C Library Reference.",
+      "qnx_8_0": "Fall back to a read()/write() loop (or mmap() of the source file). Keep the Linux path behind an #ifdef and add a portable copy loop. Check your SDP for any BSD-style sendfile() before relying on it (verify).",
+      "docs": [
+        {
+          "title": "read()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/r/read.html"
+        },
+        {
+          "title": "mmap()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mmap.html"
+        }
+      ]
+    },
+    "QNX001": {
+      "title": "epoll event loop",
+      "category": "events",
+      "base_severity": "high",
+      "confidence": "documented",
+      "why": "epoll has no page in the QNX 8.0 C Library Reference. The ionotify() page states that it 'corresponds to the Linux epoll() function and BSD's kqueue()'.",
+      "qnx_8_0": "Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery.",
+      "docs": [
+        {
+          "title": "ionotify()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/ionotify.html"
+        },
+        {
+          "title": "poll(), ppoll()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/poll.html"
+        },
+        {
+          "title": "select(), pselect()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/s/select.html"
+        },
+        {
+          "title": "MsgReceivePulse()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/msgreceivepulse.html"
+        },
+        {
+          "title": "MsgRegisterEvent()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/msgregisterevent.html"
+        },
+        {
+          "title": "sigevent",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/s/sigevent.html"
+        }
+      ]
+    },
+    "QNX007": {
+      "title": "prctl()",
+      "category": "process",
+      "base_severity": "high",
+      "confidence": "verify",
+      "why": "prctl has no page in the QNX 8.0 C Library Reference.",
+      "qnx_8_0": "PR_SET_NAME / PR_GET_NAME map to pthread_setname_np(0, name) / pthread_getname_np() (documented; the length limit is _NTO_THREAD_NAME_MAX instead of Linux's 16 bytes). Other options (PR_SET_PDEATHSIG, PR_SET_DUMPABLE, PR_SET_NO_NEW_PRIVS, PR_SET_SECCOMP ...) have no documented single-call equivalent: verify, or use procmgr_ability() for privilege control.",
+      "docs": [
+        {
+          "title": "pthread_setname_np()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pthread_setname_np.html"
+        },
+        {
+          "title": "pthread_getname_np()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pthread_getname_np.html"
+        },
+        {
+          "title": "procmgr_ability()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability.html"
+        }
+      ]
+    },
+    "QNX022": {
+      "title": "raw syscall() / SYS_* numbers",
+      "category": "process",
+      "base_severity": "high",
+      "confidence": "documented",
+      "why": "Linux system-call numbers do not exist on QNX; syscall() has no page in the QNX 8.0 C Library Reference.",
+      "qnx_8_0": "Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>). Others: find the libc function, or QNX kernel call, that provides the feature.",
+      "docs": [
+        {
+          "title": "gettid()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/g/gettid.html"
+        }
+      ]
+    },
+    "QNX012": {
+      "title": "sysinfo / load / CPU count helpers",
+      "category": "system",
+      "base_severity": "high",
+      "confidence": "verify",
+      "why": "sys/sysinfo.h, sysinfo(), get_nprocs() and getloadavg() have no page in the QNX 8.0 C Library Reference.",
+      "qnx_8_0": "sysconf() is documented for configurable limits (page size, open files, ...). For CPU count, memory totals and uptime check which sysconf names your SDP defines and the system page (<sys/syspage.h>); there is no documented load-average call (verify).",
+      "docs": [
+        {
+          "title": "sysconf()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/s/sysconf.html"
+        }
+      ]
+    },
+    "QNX013": {
+      "title": "/proc paths (Linux layout)",
+      "category": "system",
+      "base_severity": "high",
+      "confidence": "verify",
+      "why": "QNX has a /proc, but it is a process-manager namespace with its own layout, not Linux text files such as /proc/cpuinfo, /proc/meminfo, /proc/stat or /proc/<pid>/stat.",
+      "qnx_8_0": "Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target).",
+      "docs": [
+        {
+          "title": "Controlling processes via the /proc filesystem (Programmer's Guide)",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.prog/topic/process_proc_filesystem.html"
+        },
+        {
+          "title": "devctl()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html"
+        }
+      ]
+    },
+    "QNX014": {
+      "title": "/sys (sysfs) paths",
+      "category": "system",
+      "base_severity": "high",
+      "confidence": "verify",
+      "why": "QNX does not provide Linux sysfs. Paths such as /sys/class/gpio, /sys/class/net or /sys/devices have no QNX counterpart.",
+      "qnx_8_0": "Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation.",
+      "docs": [
+        {
+          "title": "devctl()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html"
+        }
+      ]
+    },
+    "QNX030": {
+      "title": "containers, namespaces and seccomp",
+      "category": "security",
+      "base_severity": "high",
+      "confidence": "verify",
+      "why": "clone(CLONE_NEW*), unshare(), setns(), seccomp and cgroups (/sys/fs/cgroup) are Linux kernel features.",
+      "qnx_8_0": "There is no one-to-one mapping. Isolation on QNX is built from process abilities, the security policy and separate process managers/partitions: design the equivalent and verify against the QNX System Security Guide.",
+      "docs": [
+        {
+          "title": "procmgr_ability()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability.html"
+        }
+      ]
+    },
+    "QNX104": {
+      "title": "OS detection that only knows Linux",
+      "category": "build",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "uname -s / CMAKE_SYSTEM_NAME / configure host checks branch on Linux; on a QNX cross build none of the Linux branches apply, and there may be no branch for QNX at all.",
+      "qnx_8_0": "Add a QNX branch (CMake with a QNX toolchain reports CMAKE_SYSTEM_NAME = QNX; autoconf host triplets contain 'nto-qnx'): verify with your toolchain and your config.sub version.",
+      "docs": [
+        {
+          "title": "qcc / q++ (Utilities Reference)",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html"
+        }
+      ]
+    },
+    "QNX023": {
+      "title": "accept4 / dup3 / SOCK_* creation flags",
+      "category": "io",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "accept4 and dup3 have no page in the QNX 8.0 C Library Reference; SOCK_NONBLOCK/SOCK_CLOEXEC support depends on the network stack headers of your SDP.",
+      "qnx_8_0": "Use accept()/dup2()/socket() followed by fcntl(fd, F_SETFD, FD_CLOEXEC) and fcntl(fd, F_SETFL, O_NONBLOCK) (a small wrapper keeps the call sites clean). Note the non-atomic window if you fork concurrently (verify). pipe2() and mkostemp() are documented and can stay.",
+      "docs": [
+        {
+          "title": "pipe(), pipe2()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pipe.html"
+        },
+        {
+          "title": "mkostemp()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mkostemp.html"
+        }
+      ]
+    },
+    "QNX019": {
+      "title": "Linux/glibc preprocessor guards",
+      "category": "portability",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "Code under #ifdef __linux__ / __GLIBC__ is not compiled by qcc for QNX, so such branches silently disappear and some #else branches may pick a BSD or generic path that was never tested on QNX.",
+      "qnx_8_0": "Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify).",
+      "docs": [
+        {
+          "title": "qcc / q++ (Utilities Reference)",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html"
+        }
+      ]
+    },
+    "QNX034": {
+      "title": "Linux socket options and netlink",
+      "category": "network",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "TCP_CORK, TCP_QUICKACK, TCP_USER_TIMEOUT, SO_BINDTODEVICE, MSG_MORE, AF_PACKET and AF_NETLINK are Linux networking features; the QNX networking stack is documented separately from the C Library Reference.",
+      "qnx_8_0": "Check each option in the QNX 8.0 networking documentation / your SDP <netinet/tcp.h>; BSD-style alternatives (for example TCP_NOPUSH for corking, routing sockets instead of netlink) are likely but must be verified.",
+      "docs": []
+    },
+    "QNX018": {
+      "title": "Linux-specific ioctl requests",
+      "category": "io",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "ioctl request codes such as BLK*, FS_IOC_*, FICLONE, SIOCETHTOOL, EVIOC*, I2C_*/SPI_IOC_* and TUNSETIFF are Linux definitions.",
+      "qnx_8_0": "QNX resource managers are usually controlled with devctl() and DCMD_* commands. Map each request to the corresponding resource-manager command for your driver (verify per driver).",
+      "docs": [
+        {
+          "title": "devctl()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html"
+        },
+        {
+          "title": "ioctl(), vioctl()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/ioctl.html"
+        }
+      ]
+    },
+    "QNX025": {
+      "title": "statfs / sys/vfs.h",
+      "category": "io",
+      "base_severity": "medium",
+      "confidence": "documented",
+      "why": "statfs()/fstatfs() and <sys/vfs.h>, <sys/statfs.h> are Linux interfaces (no statfs page in the QNX 8.0 C Library Reference).",
+      "qnx_8_0": "Use statvfs()/fstatvfs() (documented, <sys/statvfs.h>); map the fields (f_bsize, f_blocks, f_bavail, ...).",
+      "docs": [
+        {
+          "title": "statvfs(), fstatvfs()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/s/statvfs.html"
+        }
+      ]
+    },
+    "QNX005": {
+      "title": "inotify filesystem watches",
+      "category": "events",
+      "base_severity": "medium",
+      "confidence": "documented",
+      "why": "QNX 8.0 documents inotify (libfsnotify), but it is served by the fsevmgr filesystem event manager: the program must link -lfsnotify, /dev/fsnotify must exist and be readable, and inotify_init() fails if fsevmgr is not running.",
+      "qnx_8_0": "Keep the inotify code, add -lfsnotify to the link line, make sure fsevmgr runs on the target, and handle inotify_init() failure at start-up. Check event coverage per filesystem on your target (verify). inotify_qnx_ext() enables QNX-specific extensions.",
+      "docs": [
+        {
+          "title": "inotify_init(), inotify_init1()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/inotify_init.html"
+        },
+        {
+          "title": "inotify_add_watch()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/inotify_add_watch.html"
+        },
+        {
+          "title": "fsevmgr",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/f/fsevmgr.html"
+        }
+      ]
+    },
+    "QNX151": {
+      "title": "inotify needs -lfsnotify",
+      "category": "build",
+      "base_severity": "medium",
+      "confidence": "documented",
+      "why": "The code uses inotify but no build file links fsnotify.",
+      "qnx_8_0": "Add -lfsnotify to the link line (documented on the inotify_init() page) and ensure fsevmgr runs on the target.",
+      "docs": [
+        {
+          "title": "inotify_init(), inotify_init1()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/inotify_init.html"
+        }
+      ]
+    },
+    "QNX027": {
+      "title": "Linux-only mmap/madvise options",
+      "category": "io",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "mmap() on QNX documents MAP_ANON (not MAP_ANONYMOUS), MAP_LAZY, MAP_NORESERVE, MAP_STACK and others; MAP_POPULATE, MAP_HUGETLB, MAP_GROWSDOWN, MAP_LOCKED, MAP_32BIT and mremap() are Linux features.",
+      "qnx_8_0": "Use MAP_ANON, drop prefault/huge-page flags (or find the QNX equivalent in the mmap() page), and replace mremap() with mmap + copy. madvise() has no C Library Reference page: use posix_madvise() (documented) (verify).",
+      "docs": [
+        {
+          "title": "mmap()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mmap.html"
+        },
+        {
+          "title": "posix_madvise()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/posix_madvise.html"
+        }
+      ]
+    },
+    "QNX026": {
+      "title": "Linux-only clock IDs",
+      "category": "time",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "The clock_gettime() page lists CLOCK_REALTIME, CLOCK_MONOTONIC and the CPU-time clocks; CLOCK_BOOTTIME, CLOCK_MONOTONIC_RAW, *_COARSE and CLOCK_TAI are Linux clocks and are not documented for QNX 8.0.",
+      "qnx_8_0": "Use CLOCK_MONOTONIC for intervals and CLOCK_REALTIME for wall time. If you need time-since-boot semantics, decide what to do while suspended (verify behaviour on your target). timer_create() additionally accepts CLOCK_SOFTTIME.",
+      "docs": [
+        {
+          "title": "clock_gettime()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/c/clock_gettime.html"
+        },
+        {
+          "title": "timer_create()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/timer_create.html"
+        }
+      ]
+    },
+    "QNX105": {
+      "title": "sanitizers and Linux-only linker flags",
+      "category": "build",
+      "base_severity": "low",
+      "confidence": "verify",
+      "why": "-fsanitize=*, -Wl,--no-undefined and -Wl,-z,* are common on Linux builds; whether your QNX SDP's compiler/linker accepts them is not stated in the pages searched.",
+      "qnx_8_0": "Make them conditional for the QNX target and test the link with your SDP (verify).",
+      "docs": [
+        {
+          "title": "qcc / q++ (Utilities Reference)",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html"
+        }
+      ]
+    },
+    "QNX020": {
+      "title": "glibc / GNU extensions",
+      "category": "portability",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "These GNU extensions have no page in the QNX 8.0 C Library Reference (they may still be available in your SDP headers or not: the compiler is the judge).",
+      "qnx_8_0": "Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify).",
+      "docs": [
+        {
+          "title": "realpath()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/r/realpath.html"
+        },
+        {
+          "title": "getopt_long()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/g/getopt_long.html"
+        }
+      ]
+    }
+  },
+  "findings": [
+    {
+      "rule": "QNX008",
+      "file": "src/unix/core.c",
+      "line": 1528,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "CPU_SETSIZE"
+      ],
+      "snippet": "return CPU_SETSIZE;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX009",
+      "file": "src/unix/fs.c",
+      "line": 53,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "#include <sys/sendfile.h>"
+      ],
+      "snippet": "# include <sys/sendfile.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX009",
+      "file": "src/unix/fs.c",
+      "line": 943,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sendfile"
+      ],
+      "snippet": "r = sendfile(out_fd, in_fd, &off, len);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX009",
+      "file": "src/unix/fs.c",
+      "line": 988,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sendfile"
+      ],
+      "snippet": "r = sendfile(in_fd, out_fd, req->off, req->bufsml[0].len, NULL, &len, 0);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX009",
+      "file": "src/unix/fs.c",
+      "line": 993,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sendfile"
+      ],
+      "snippet": "r = sendfile(in_fd, out_fd, req->off, &len, NULL, 0);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 44,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "#include <sys/epoll.h>"
+      ],
+      "snippet": "#include <sys/epoll.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX007",
+      "file": "src/unix/linux.c",
+      "line": 48,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "#include <sys/prctl.h>"
+      ],
+      "snippet": "#include <sys/prctl.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 51,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "#include <sys/syscall.h>"
+      ],
+      "snippet": "#include <sys/syscall.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/linux.c",
+      "line": 52,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "#include <sys/sysinfo.h>"
+      ],
+      "snippet": "#include <sys/sysinfo.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 59,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_io_uring_setup"
+      ],
+      "snippet": "#ifndef __NR_io_uring_setup",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 60,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_io_uring_setup"
+      ],
+      "snippet": "# define __NR_io_uring_setup 425",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 63,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_io_uring_enter"
+      ],
+      "snippet": "#ifndef __NR_io_uring_enter",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 64,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_io_uring_enter"
+      ],
+      "snippet": "# define __NR_io_uring_enter 426",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 67,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_io_uring_register"
+      ],
+      "snippet": "#ifndef __NR_io_uring_register",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 68,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_io_uring_register"
+      ],
+      "snippet": "# define __NR_io_uring_register 427",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 71,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_copy_file_range"
+      ],
+      "snippet": "#ifndef __NR_copy_file_range",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 73,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_copy_file_range"
+      ],
+      "snippet": "#  define __NR_copy_file_range 326",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 75,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_copy_file_range"
+      ],
+      "snippet": "#  define __NR_copy_file_range 377",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 77,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_copy_file_range"
+      ],
+      "snippet": "#  define __NR_copy_file_range 375",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 79,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_copy_file_range"
+      ],
+      "snippet": "#  define __NR_copy_file_range 391",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 81,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_copy_file_range"
+      ],
+      "snippet": "#  define __NR_copy_file_range 285",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 83,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_copy_file_range"
+      ],
+      "snippet": "#  define __NR_copy_file_range 379",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 85,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_copy_file_range"
+      ],
+      "snippet": "#  define __NR_copy_file_range 285",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 87,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_copy_file_range"
+      ],
+      "snippet": "#  define __NR_copy_file_range 285",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 91,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_statx"
+      ],
+      "snippet": "#ifndef __NR_statx",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 93,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_statx"
+      ],
+      "snippet": "#  define __NR_statx 332",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 95,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_statx"
+      ],
+      "snippet": "#  define __NR_statx 383",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 97,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_statx"
+      ],
+      "snippet": "#  define __NR_statx 397",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 99,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_statx"
+      ],
+      "snippet": "#  define __NR_statx 397",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 101,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_statx"
+      ],
+      "snippet": "#  define __NR_statx 383",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 103,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_statx"
+      ],
+      "snippet": "#  define __NR_statx 379",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 105,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_statx"
+      ],
+      "snippet": "#  define __NR_statx 291",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 109,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_getrandom"
+      ],
+      "snippet": "#ifndef __NR_getrandom",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 111,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_getrandom"
+      ],
+      "snippet": "#  define __NR_getrandom 318",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 113,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_getrandom"
+      ],
+      "snippet": "#  define __NR_getrandom 355",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 115,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_getrandom"
+      ],
+      "snippet": "#  define __NR_getrandom 384",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 117,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_getrandom"
+      ],
+      "snippet": "#  define __NR_getrandom 384",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 119,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_getrandom"
+      ],
+      "snippet": "#  define __NR_getrandom 359",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 121,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_getrandom"
+      ],
+      "snippet": "#  define __NR_getrandom 349",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 123,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_getrandom"
+      ],
+      "snippet": "#  define __NR_getrandom 278",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 255,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_ADD"
+      ],
+      "snippet": "STATIC_ASSERT(EPOLL_CTL_ADD < 4);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 256,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_DEL"
+      ],
+      "snippet": "STATIC_ASSERT(EPOLL_CTL_DEL < 4);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 257,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_MOD"
+      ],
+      "snippet": "STATIC_ASSERT(EPOLL_CTL_MOD < 4);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 282,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event (*events)[256]);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 286,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event (*events)[256],",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 289,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event* e);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "src/unix/linux.c",
+      "line": 324,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/version_signature\""
+      ],
+      "snippet": "if (0 == uv__slurp(\"/proc/version_signature\", v_sig, sizeof(v_sig)))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 384,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_copy_file_range"
+      ],
+      "snippet": "#ifdef __NR_copy_file_range",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 385,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "syscall",
+        "__NR_copy_file_range"
+      ],
+      "snippet": "return syscall(__NR_copy_file_range,",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 403,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_statx"
+      ],
+      "snippet": "#if !defined(__NR_statx) || defined(__ANDROID_API__) && __ANDROID_API__ < 30",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 408,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "syscall",
+        "__NR_statx"
+      ],
+      "snippet": "rc = syscall(__NR_statx, dirfd, path, flags, mask, statxbuf);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 418,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "__NR_getrandom"
+      ],
+      "snippet": "#if !defined(__NR_getrandom) || defined(__ANDROID_API__) && __ANDROID_API__ < 28",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 423,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "syscall",
+        "__NR_getrandom"
+      ],
+      "snippet": "rc = syscall(__NR_getrandom, buf, buflen, flags);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 433,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "syscall",
+        "__NR_io_uring_setup"
+      ],
+      "snippet": "return syscall(__NR_io_uring_setup, entries, params);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 445,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "syscall",
+        "__NR_io_uring_enter"
+      ],
+      "snippet": "return syscall(__NR_io_uring_enter,",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/linux.c",
+      "line": 456,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "syscall",
+        "__NR_io_uring_register"
+      ],
+      "snippet": "return syscall(__NR_io_uring_register, fd, opcode, arg, nargs);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 507,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event e;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 582,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "epoll_ctl",
+        "EPOLL_CTL_ADD"
+      ],
+      "snippet": "if (epoll_ctl(epollfd, EPOLL_CTL_ADD, ringfd, &e))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 643,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "epoll_create1"
+      ],
+      "snippet": "loop->backend_fd = epoll_create1(O_CLOEXEC);",
+      "notes": [
+        "Replace the epoll fd with a channel (ChannelCreate()) plus a connection (ConnectAttach()) for SIGEV_PULSE_INIT(), or with a pollfd array."
+      ],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 691,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event (*prep)[256];",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 692,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event* events;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 700,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event dummy;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 724,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "epoll_ctl",
+        "EPOLL_CTL_DEL"
+      ],
+      "snippet": "epoll_ctl(loop->backend_fd, EPOLL_CTL_DEL, fd, &dummy);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 729,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_DEL"
+      ],
+      "snippet": "EPOLL_CTL_DEL,",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 737,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event e;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 745,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "epoll_ctl",
+        "EPOLL_CTL_ADD"
+      ],
+      "snippet": "if (epoll_ctl(loop->backend_fd, EPOLL_CTL_ADD, fd, &e))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 750,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "epoll_ctl",
+        "EPOLL_CTL_DEL"
+      ],
+      "snippet": "if (epoll_ctl(loop->backend_fd, EPOLL_CTL_DEL, fd, &e))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1212,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event (*events)[256],",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1215,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event* e) {",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1217,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event* pe;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1222,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "epoll_ctl"
+      ],
+      "snippet": "if (!epoll_ctl(epollfd, op, fd, e))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1225,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_DEL"
+      ],
+      "snippet": "if (op == EPOLL_CTL_DEL)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1228,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_ADD"
+      ],
+      "snippet": "if (op != EPOLL_CTL_ADD)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1235,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "epoll_ctl",
+        "EPOLL_CTL_MOD"
+      ],
+      "snippet": "if (!epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, e))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1265,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event (*events)[256]) {",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1266,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event oldevents[256];",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1312,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_DEL"
+      ],
+      "snippet": "if (op == EPOLL_CTL_DEL)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1315,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_ADD"
+      ],
+      "snippet": "if (op != EPOLL_CTL_ADD)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1324,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_MOD"
+      ],
+      "snippet": "EPOLL_CTL_MOD,",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1333,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event events[1024];",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1334,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event prep[256];",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1336,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event* pe;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1337,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct epoll_event"
+      ],
+      "snippet": "struct epoll_event e;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1393,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_MOD"
+      ],
+      "snippet": "op = EPOLL_CTL_MOD;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1395,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_ADD"
+      ],
+      "snippet": "op = EPOLL_CTL_ADD;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1432,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "epoll_pwait"
+      ],
+      "snippet": "nfds = epoll_pwait(epollfd, events, ARRAY_SIZE(events), timeout, sigmask);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX001",
+      "file": "src/unix/linux.c",
+      "line": 1490,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "EPOLL_CTL_DEL"
+      ],
+      "snippet": "uv__epoll_ctl_prep(epollfd, ctl, &prep, EPOLL_CTL_DEL, fd, pe);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "src/unix/linux.c",
+      "line": 1631,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/self/stat\""
+      ],
+      "snippet": "fd = open(\"/proc/self/stat\", O_RDONLY);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "src/unix/linux.c",
+      "line": 1686,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/uptime\""
+      ],
+      "snippet": "if (0 == uv__slurp(\"/proc/uptime\", buf, sizeof(buf)))",
+      "notes": [
+        "System-wide Linux text files: no QNX counterpart in /proc; use sysconf()/system page APIs (verify)."
+      ],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "src/unix/linux.c",
+      "line": 1767,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/stat\""
+      ],
+      "snippet": "fp = uv__open_file(\"/proc/stat\");",
+      "notes": [
+        "System-wide Linux text files: no QNX counterpart in /proc; use sysconf()/system page APIs (verify)."
+      ],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "src/unix/linux.c",
+      "line": 1801,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/cpuinfo\""
+      ],
+      "snippet": "fp = uv__open_file(\"/proc/cpuinfo\");",
+      "notes": [
+        "System-wide Linux text files: no QNX counterpart in /proc; use sysconf()/system page APIs (verify)."
+      ],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "src/unix/linux.c",
+      "line": 1860,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/devices/system/cpu/cpu%u/cpufreq/scaling_cur_freq\""
+      ],
+      "snippet": "\"/sys/devices/system/cpu/cpu%u/cpufreq/scaling_cur_freq\", cpu);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX007",
+      "file": "src/unix/linux.c",
+      "line": 2022,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "PR_SET_NAME"
+      ],
+      "snippet": "#if defined(PR_SET_NAME)",
+      "notes": [
+        "Direct mapping: pthread_setname_np(0, name) names the calling thread."
+      ],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX007",
+      "file": "src/unix/linux.c",
+      "line": 2023,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "prctl",
+        "PR_SET_NAME"
+      ],
+      "snippet": "prctl(PR_SET_NAME, title);  /* Only copies first 16 characters. */",
+      "notes": [
+        "Direct mapping: pthread_setname_np(0, name) names the calling thread."
+      ],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "src/unix/linux.c",
+      "line": 2033,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/meminfo\""
+      ],
+      "snippet": "if (uv__slurp(\"/proc/meminfo\", buf, sizeof(buf)))",
+      "notes": [
+        "System-wide Linux text files: no QNX counterpart in /proc; use sysconf()/system page APIs (verify)."
+      ],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/linux.c",
+      "line": 2051,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct sysinfo"
+      ],
+      "snippet": "struct sysinfo info;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/linux.c",
+      "line": 2059,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sysinfo"
+      ],
+      "snippet": "if (0 == sysinfo(&info))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/linux.c",
+      "line": 2067,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct sysinfo"
+      ],
+      "snippet": "struct sysinfo info;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/linux.c",
+      "line": 2075,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sysinfo"
+      ],
+      "snippet": "if (0 == sysinfo(&info))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "src/unix/linux.c",
+      "line": 2132,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/%.*s/memory.soft_limit_in_bytes\""
+      ],
+      "snippet": "\"/sys/fs/cgroup/memory/%.*s/memory.soft_limit_in_bytes\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX030",
+      "file": "src/unix/linux.c",
+      "line": 2132,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/%.*s/memory.soft_limit_in_bytes\""
+      ],
+      "snippet": "\"/sys/fs/cgroup/memory/%.*s/memory.soft_limit_in_bytes\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "src/unix/linux.c",
+      "line": 2136,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/%.*s/memory.limit_in_bytes\""
+      ],
+      "snippet": "\"/sys/fs/cgroup/memory/%.*s/memory.limit_in_bytes\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX030",
+      "file": "src/unix/linux.c",
+      "line": 2136,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/%.*s/memory.limit_in_bytes\""
+      ],
+      "snippet": "\"/sys/fs/cgroup/memory/%.*s/memory.limit_in_bytes\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "src/unix/linux.c",
+      "line": 2147,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/memory.soft_limit_in_bytes\""
+      ],
+      "snippet": "*high = uv__read_uint64(\"/sys/fs/cgroup/memory/memory.soft_limit_in_bytes\");",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX030",
+      "file": "src/unix/linux.c",
+      "line": 2147,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/memory.soft_limit_in_bytes\""
+      ],
+      "snippet": "*high = uv__read_uint64(\"/sys/fs/cgroup/memory/memory.soft_limit_in_bytes\");",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "src/unix/linux.c",
+      "line": 2148,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/memory.limit_in_bytes\""
+      ],
+      "snippet": "*max = uv__read_uint64(\"/sys/fs/cgroup/memory/memory.limit_in_bytes\");",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX030",
+      "file": "src/unix/linux.c",
+      "line": 2148,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/memory.limit_in_bytes\""
+      ],
+      "snippet": "*max = uv__read_uint64(\"/sys/fs/cgroup/memory/memory.limit_in_bytes\");",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "src/unix/linux.c",
+      "line": 2172,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/%.*s/memory.max\""
+      ],
+      "snippet": "snprintf(filename, sizeof(filename), \"/sys/fs/cgroup/%.*s/memory.max\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX030",
+      "file": "src/unix/linux.c",
+      "line": 2172,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/%.*s/memory.max\""
+      ],
+      "snippet": "snprintf(filename, sizeof(filename), \"/sys/fs/cgroup/%.*s/memory.max\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "src/unix/linux.c",
+      "line": 2174,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/%.*s/memory.high\""
+      ],
+      "snippet": "snprintf(filename, sizeof(filename), \"/sys/fs/cgroup/%.*s/memory.high\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX030",
+      "file": "src/unix/linux.c",
+      "line": 2174,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/%.*s/memory.high\""
+      ],
+      "snippet": "snprintf(filename, sizeof(filename), \"/sys/fs/cgroup/%.*s/memory.high\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "src/unix/linux.c",
+      "line": 2197,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/self/cgroup\""
+      ],
+      "snippet": "if (uv__slurp(\"/proc/self/cgroup\", buf, sizeof(buf)))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "src/unix/linux.c",
+      "line": 2214,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/%.*s/memory.usage_in_bytes\""
+      ],
+      "snippet": "\"/sys/fs/cgroup/memory/%.*s/memory.usage_in_bytes\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX030",
+      "file": "src/unix/linux.c",
+      "line": 2214,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/%.*s/memory.usage_in_bytes\""
+      ],
+      "snippet": "\"/sys/fs/cgroup/memory/%.*s/memory.usage_in_bytes\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "src/unix/linux.c",
+      "line": 2225,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/memory.usage_in_bytes\""
+      ],
+      "snippet": "return uv__read_uint64(\"/sys/fs/cgroup/memory/memory.usage_in_bytes\");",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX030",
+      "file": "src/unix/linux.c",
+      "line": 2225,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/memory/memory.usage_in_bytes\""
+      ],
+      "snippet": "return uv__read_uint64(\"/sys/fs/cgroup/memory/memory.usage_in_bytes\");",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "src/unix/linux.c",
+      "line": 2238,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/%.*s/memory.current\""
+      ],
+      "snippet": "\"/sys/fs/cgroup/%.*s/memory.current\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX030",
+      "file": "src/unix/linux.c",
+      "line": 2238,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/fs/cgroup/%.*s/memory.current\""
+      ],
+      "snippet": "\"/sys/fs/cgroup/%.*s/memory.current\", n, p);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "src/unix/linux.c",
+      "line": 2248,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/self/cgroup\""
+      ],
+      "snippet": "if (uv__slurp(\"/proc/self/cgroup\", buf, sizeof(buf)))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/linux.c",
+      "line": 2274,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct sysinfo"
+      ],
+      "snippet": "struct sysinfo info;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "src/unix/linux.c",
+      "line": 2277,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/loadavg\""
+      ],
+      "snippet": "if (0 == uv__slurp(\"/proc/loadavg\", buf, sizeof(buf)))",
+      "notes": [
+        "System-wide Linux text files: no QNX counterpart in /proc; use sysconf()/system page APIs (verify)."
+      ],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/linux.c",
+      "line": 2281,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sysinfo"
+      ],
+      "snippet": "if (sysinfo(&info) < 0)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "src/unix/procfs-exepath.c",
+      "line": 36,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/self/exe\""
+      ],
+      "snippet": "n = readlink(\"/proc/self/exe\", buffer, n);",
+      "notes": [
+        "Linux readlink(\"/proc/self/exe\") -> on QNX read /proc/self/exefile (verify)."
+      ],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "src/unix/qnx.c",
+      "line": 100,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/self/ctl\""
+      ],
+      "snippet": "fd = uv__open_cloexec(\"/proc/self/ctl\", O_RDONLY);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/sysinfo-loadavg.c",
+      "line": 26,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "#include <sys/sysinfo.h>"
+      ],
+      "snippet": "#include <sys/sysinfo.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/sysinfo-loadavg.c",
+      "line": 29,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct sysinfo"
+      ],
+      "snippet": "struct sysinfo info;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/sysinfo-loadavg.c",
+      "line": 31,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sysinfo"
+      ],
+      "snippet": "if (sysinfo(&info) < 0) return;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/sysinfo-memory.c",
+      "line": 26,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "#include <sys/sysinfo.h>"
+      ],
+      "snippet": "#include <sys/sysinfo.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/sysinfo-memory.c",
+      "line": 29,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct sysinfo"
+      ],
+      "snippet": "struct sysinfo info;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/sysinfo-memory.c",
+      "line": 31,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sysinfo"
+      ],
+      "snippet": "if (sysinfo(&info) == 0)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/sysinfo-memory.c",
+      "line": 37,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "struct sysinfo"
+      ],
+      "snippet": "struct sysinfo info;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX012",
+      "file": "src/unix/sysinfo-memory.c",
+      "line": 39,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sysinfo"
+      ],
+      "snippet": "if (sysinfo(&info) == 0)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/thread.c",
+      "line": 203,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "CPU_ZERO"
+      ],
+      "snippet": "CPU_ZERO(&cpuset);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/thread.c",
+      "line": 206,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "CPU_SET"
+      ],
+      "snippet": "CPU_SET(i, &cpuset);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/thread.c",
+      "line": 209,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sched_setaffinity"
+      ],
+      "snippet": "if (sched_setaffinity(pthread_gettid_np(*tid), sizeof(cpuset), &cpuset))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/thread.c",
+      "line": 214,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "pthread_setaffinity_np"
+      ],
+      "snippet": "r = pthread_setaffinity_np(*tid, sizeof(cpuset), &cpuset);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/thread.c",
+      "line": 235,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "CPU_ZERO"
+      ],
+      "snippet": "CPU_ZERO(&cpuset);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/thread.c",
+      "line": 237,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sched_getaffinity"
+      ],
+      "snippet": "if (sched_getaffinity(pthread_gettid_np(*tid), sizeof(cpuset), &cpuset))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/thread.c",
+      "line": 242,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "pthread_getaffinity_np"
+      ],
+      "snippet": "r = pthread_getaffinity_np(*tid, sizeof(cpuset), &cpuset);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/thread.c",
+      "line": 247,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "CPU_ISSET"
+      ],
+      "snippet": "cpumask[i] = !!CPU_ISSET(i, &cpuset);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/thread.c",
+      "line": 271,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sched_getcpu"
+      ],
+      "snippet": "cpu = sched_getcpu();",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX104",
+      "file": "CMakeLists.txt",
+      "line": 320,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "CMAKE_SYSTEM_NAME STREQUAL \"Linux"
+      ],
+      "snippet": "if(CMAKE_SYSTEM_NAME STREQUAL \"Linux\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX023",
+      "file": "src/unix/core.c",
+      "line": 78,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "accept4"
+      ],
+      "snippet": "#  define uv__accept4 accept4",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX023",
+      "file": "src/unix/core.c",
+      "line": 81,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "paccept"
+      ],
+      "snippet": "#  define uv__accept4(a, b, c, d) paccept((a), (b), (c), NULL, (d))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/core.c",
+      "line": 90,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__linux__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/core.c",
+      "line": 97,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__linux__) && defined(__SANITIZE_THREAD__) && defined(__clang__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX023",
+      "file": "src/unix/core.c",
+      "line": 498,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "SOCK_NONBLOCK",
+        "SOCK_CLOEXEC"
+      ],
+      "snippet": "#if defined(SOCK_NONBLOCK) && defined(SOCK_CLOEXEC)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX023",
+      "file": "src/unix/core.c",
+      "line": 499,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "SOCK_NONBLOCK",
+        "SOCK_CLOEXEC"
+      ],
+      "snippet": "sockfd = socket(domain, type | SOCK_NONBLOCK | SOCK_CLOEXEC, protocol);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX023",
+      "file": "src/unix/core.c",
+      "line": 556,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "SOCK_NONBLOCK",
+        "SOCK_CLOEXEC"
+      ],
+      "snippet": "peerfd = uv__accept4(sockfd, NULL, NULL, SOCK_NONBLOCK|SOCK_CLOEXEC);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/core.c",
+      "line": 600,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#elif defined(__linux__) && defined(__SANITIZE_THREAD__) && defined(__clang__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/core.c",
+      "line": 713,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "defined(__linux__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX034",
+      "file": "src/unix/core.c",
+      "line": 715,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "MSG_CMSG_CLOEXEC"
+      ],
+      "snippet": "rc = recvmsg(fd, msg, flags | MSG_CMSG_CLOEXEC);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/core.c",
+      "line": 1089,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__linux__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX023",
+      "file": "src/unix/core.c",
+      "line": 1092,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "dup3"
+      ],
+      "snippet": "r = dup3(oldfd, newfd, O_CLOEXEC);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/core.c",
+      "line": 1571,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#ifdef __linux__",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/core.c",
+      "line": 1582,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#ifdef __linux__",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/core.c",
+      "line": 1597,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#ifdef __linux__",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/core.c",
+      "line": 1634,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#ifdef __linux__",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/core.c",
+      "line": 1869,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#ifdef __linux__",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/fs.c",
+      "line": 48,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__linux__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX018",
+      "file": "src/unix/fs.c",
+      "line": 59,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "FICLONE"
+      ],
+      "snippet": "#elif defined(__linux__) && !defined(FICLONE)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/fs.c",
+      "line": 59,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#elif defined(__linux__) && !defined(FICLONE)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX025",
+      "file": "src/unix/fs.c",
+      "line": 82,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "#include <sys/statfs.h>"
+      ],
+      "snippet": "# include <sys/statfs.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/fs.c",
+      "line": 205,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__linux__) || defined(__sun) || defined(__NetBSD__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/fs.c",
+      "line": 247,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__linux__)                                                        \\",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX025",
+      "file": "src/unix/fs.c",
+      "line": 590,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "struct statfs"
+      ],
+      "snippet": "struct statfs buf;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX025",
+      "file": "src/unix/fs.c",
+      "line": 592,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "statfs"
+      ],
+      "snippet": "if (0 != statfs(req->path, &buf))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/fs.c",
+      "line": 835,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#ifdef __linux__",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/fs.c",
+      "line": 926,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__linux__) || defined(__sun)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/fs.c",
+      "line": 937,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#ifdef __linux__",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/fs.c",
+      "line": 1029,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__linux__)                                                         \\",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/fs.c",
+      "line": 1068,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__linux__)            ||                                           \\",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/fs.c",
+      "line": 1207,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#ifdef __linux__",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX018",
+      "file": "src/unix/fs.c",
+      "line": 1224,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "FICLONE"
+      ],
+      "snippet": "#ifdef FICLONE",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX018",
+      "file": "src/unix/fs.c",
+      "line": 1227,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "FICLONE"
+      ],
+      "snippet": "if (ioctl(dstfd, FICLONE, srcfd) == 0) {",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/fs.c",
+      "line": 1384,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#ifdef __linux__",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX034",
+      "file": "src/unix/linux.c",
+      "line": 41,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "#include <net/ethernet.h>"
+      ],
+      "snippet": "#include <net/ethernet.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX034",
+      "file": "src/unix/linux.c",
+      "line": 43,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "#include <netpacket/packet.h>"
+      ],
+      "snippet": "#include <netpacket/packet.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX005",
+      "file": "src/unix/linux.c",
+      "line": 45,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "#include <sys/inotify.h>"
+      ],
+      "snippet": "#include <sys/inotify.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX151",
+      "file": "src/unix/linux.c",
+      "line": 45,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "#include <sys/inotify.h>"
+      ],
+      "snippet": "inotify used; no -lfsnotify found in 1 build file(s)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX027",
+      "file": "src/unix/linux.c",
+      "line": 560,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "MAP_POPULATE"
+      ],
+      "snippet": "MAP_SHARED | MAP_POPULATE,",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX027",
+      "file": "src/unix/linux.c",
+      "line": 567,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "MAP_POPULATE"
+      ],
+      "snippet": "MAP_SHARED | MAP_POPULATE,",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX026",
+      "file": "src/unix/linux.c",
+      "line": 1607,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "CLOCK_MONOTONIC_COARSE"
+      ],
+      "snippet": "if (0 == clock_getres(CLOCK_MONOTONIC_COARSE, &t))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX026",
+      "file": "src/unix/linux.c",
+      "line": 1609,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "CLOCK_MONOTONIC_COARSE"
+      ],
+      "snippet": "clock_id = CLOCK_MONOTONIC_COARSE;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX026",
+      "file": "src/unix/linux.c",
+      "line": 1690,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "CLOCK_BOOTTIME"
+      ],
+      "snippet": "if (clock_gettime(CLOCK_BOOTTIME, &now))",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX005",
+      "file": "src/unix/linux.c",
+      "line": 2304,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "inotify_init1"
+      ],
+      "snippet": "fd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX005",
+      "file": "src/unix/linux.c",
+      "line": 2394,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "inotify_rm_watch"
+      ],
+      "snippet": "inotify_rm_watch(loop->inotify_fd, w->wd);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX005",
+      "file": "src/unix/linux.c",
+      "line": 2403,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "struct inotify_event"
+      ],
+      "snippet": "const struct inotify_event* e;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX005",
+      "file": "src/unix/linux.c",
+      "line": 2428,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "struct inotify_event"
+      ],
+      "snippet": "e = (const struct inotify_event*) p;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX005",
+      "file": "src/unix/linux.c",
+      "line": 2511,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "inotify_add_watch"
+      ],
+      "snippet": "wd = inotify_add_watch(loop->inotify_fd, path, events);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/process.c",
+      "line": 58,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__linux__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/random-getrandom.c",
+      "line": 25,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#ifdef __linux__",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/thread.c",
+      "line": 40,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__GLIBC__"
+      ],
+      "snippet": "#if defined(__GLIBC__) && !defined(__UCLIBC__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/thread.c",
+      "line": 44,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__linux__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/thread.c",
+      "line": 85,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if !defined(__linux__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/thread.c",
+      "line": 99,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#if defined(__APPLE__) || defined(__linux__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/thread.c",
+      "line": 498,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__GLIBC__"
+      ],
+      "snippet": "#if defined(__GLIBC__) && !defined(__UCLIBC__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/thread.c",
+      "line": 534,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__GLIBC__"
+      ],
+      "snippet": "#if (defined(__GLIBC__) && !defined(__UCLIBC__)) || \\",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/thread.c",
+      "line": 664,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__GLIBC__"
+      ],
+      "snippet": "#if defined(__GLIBC__) && !defined(__UCLIBC__)",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 55,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fsanitize=address\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 56,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_SHARED_LINKER_FLAGS \"${CMAKE_SHARED_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=address\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 57,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=address\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 67,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fsanitize=memory\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 68,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_SHARED_LINKER_FLAGS \"${CMAKE_SHARED_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=memory\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 69,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=memory\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 75,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fsanitize=thread\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 76,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_SHARED_LINKER_FLAGS \"${CMAKE_SHARED_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=thread\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 77,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=thread\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 86,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fsanitize=undefined\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 87,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_SHARED_LINKER_FLAGS \"${CMAKE_SHARED_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=undefined\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX105",
+      "file": "CMakeLists.txt",
+      "line": 88,
+      "severity": "low",
+      "base_severity": "low",
+      "symbols": [
+        "-fsanitize"
+      ],
+      "snippet": "set (CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=undefined\")",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/core.c",
+      "line": 92,
+      "severity": "info",
+      "base_severity": "high",
+      "symbols": [
+        "#include <sys/syscall.h>"
+      ],
+      "snippet": "# include <sys/syscall.h>",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/core.c",
+      "line": 93,
+      "severity": "info",
+      "base_severity": "high",
+      "symbols": [
+        "syscall",
+        "SYS_gettid"
+      ],
+      "snippet": "# define gettid() syscall(SYS_gettid)",
+      "notes": [
+        "Direct mapping: gettid() from <process.h>."
+      ],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX023",
+      "file": "src/unix/core.c",
+      "line": 94,
+      "severity": "info",
+      "base_severity": "medium",
+      "symbols": [
+        "accept4"
+      ],
+      "snippet": "# define uv__accept4 accept4",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/core.c",
+      "line": 603,
+      "severity": "info",
+      "base_severity": "high",
+      "symbols": [
+        "syscall",
+        "SYS_close"
+      ],
+      "snippet": "rc = syscall(SYS_close, fd);",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX019",
+      "file": "src/unix/core.c",
+      "line": 606,
+      "severity": "info",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#elif defined(__linux__) && !defined(__SANITIZE_THREAD__)",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX022",
+      "file": "src/unix/core.c",
+      "line": 607,
+      "severity": "info",
+      "base_severity": "high",
+      "symbols": [
+        "syscall",
+        "SYS_close"
+      ],
+      "snippet": "return syscall(SYS_close, fd);",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/core.c",
+      "line": 1870,
+      "severity": "info",
+      "base_severity": "high",
+      "symbols": [
+        "cpu_set_t"
+      ],
+      "snippet": "cpu_set_t set;",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/core.c",
+      "line": 1879,
+      "severity": "info",
+      "base_severity": "high",
+      "symbols": [
+        "sched_getaffinity"
+      ],
+      "snippet": "if (0 == sched_getaffinity(0, sizeof(set), &set))",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/core.c",
+      "line": 1880,
+      "severity": "info",
+      "base_severity": "high",
+      "symbols": [
+        "CPU_COUNT"
+      ],
+      "snippet": "rc = CPU_COUNT(&set);",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX009",
+      "file": "src/unix/fs.c",
+      "line": 49,
+      "severity": "info",
+      "base_severity": "high",
+      "symbols": [
+        "#include <sys/sendfile.h>"
+      ],
+      "snippet": "# include <sys/sendfile.h>",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX018",
+      "file": "src/unix/fs.c",
+      "line": 61,
+      "severity": "info",
+      "base_severity": "medium",
+      "symbols": [
+        "FICLONE"
+      ],
+      "snippet": "# define FICLONE _IOW(0x94, 9, int)",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX025",
+      "file": "src/unix/fs.c",
+      "line": 841,
+      "severity": "info",
+      "base_severity": "medium",
+      "symbols": [
+        "struct statfs"
+      ],
+      "snippet": "struct statfs s;",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX025",
+      "file": "src/unix/fs.c",
+      "line": 843,
+      "severity": "info",
+      "base_severity": "medium",
+      "symbols": [
+        "fstatfs"
+      ],
+      "snippet": "if (-1 == fstatfs(fd, &s))",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX025",
+      "file": "src/unix/fs.c",
+      "line": 854,
+      "severity": "info",
+      "base_severity": "medium",
+      "symbols": [
+        "struct statfs"
+      ],
+      "snippet": "struct statfs s;",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX025",
+      "file": "src/unix/fs.c",
+      "line": 856,
+      "severity": "info",
+      "base_severity": "medium",
+      "symbols": [
+        "fstatfs"
+      ],
+      "snippet": "if (-1 == fstatfs(fd, &s))",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX020",
+      "file": "src/unix/thread.c",
+      "line": 41,
+      "severity": "info",
+      "base_severity": "medium",
+      "symbols": [
+        "#include <gnu/libc-version.h>"
+      ],
+      "snippet": "#include <gnu/libc-version.h>  /* gnu_get_libc_version() */",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX008",
+      "file": "src/unix/thread.c",
+      "line": 46,
+      "severity": "info",
+      "base_severity": "high",
+      "symbols": [
+        "cpu_set_t"
+      ],
+      "snippet": "# define uv__cpu_set_t cpu_set_t",
+      "notes": [],
+      "linux_guarded": true
+    },
+    {
+      "rule": "QNX020",
+      "file": "src/unix/thread.c",
+      "line": 512,
+      "severity": "info",
+      "base_severity": "medium",
+      "symbols": [
+        "gnu_get_libc_version"
+      ],
+      "snippet": "const char* version = gnu_get_libc_version();",
+      "notes": [],
+      "linux_guarded": true
+    }
+  ],
+  "limitations": "qnxport is a static, pattern-based scan (comments and string literals are understood; no compiler or preprocessor run). It lists the places that need attention and a porting strategy backed by the public QNX 8.0 documentation. It cannot prove that a project builds or behaves correctly on QNX: compile with qcc, run on a QNX 8.0 target and test. Findings marked 'verify' name a likely strategy that could not be confirmed from the public documentation; check them against the headers and docs of your installed QNX SDP. 'Not in the QNX 8.0 C Library Reference' means no page was found for the function, not that the symbol is absent from your SDP."
+}

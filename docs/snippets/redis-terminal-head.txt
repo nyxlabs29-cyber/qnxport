@@ -1,0 +1,28 @@
+qnxport 0.1.0 - QNX 8.0 porting scan
+scanned  redis-7.2.4: 20 source files, 31,923 lines, 1 build files
+findings 34 high | 43 medium | 17 low | 14 info (info = already inside a Linux-only #if branch, or advice)  [12 rules, 108 findings]
+
+SEV     RULE    COUNT  FILES  WHAT
+HIGH    QNX001  21     1      epoll event loop
+HIGH    QNX013  9      4      /proc paths (Linux layout)  [verify]
+HIGH    QNX008  6      1      CPU affinity
+HIGH    QNX035  1      1      systemd / udev integration  [verify]
+MEDIUM  QNX019  38     10     Linux/glibc preprocessor guards  [verify]
+MEDIUM  QNX020  10     4      glibc / GNU extensions  [verify]
+MEDIUM  QNX023  1      1      accept4 / dup3 / SOCK_* creation flags  [verify]
+LOW     QNX101  11     1      Linux link flags (-lrt -ldl -lpthread)  [verify]
+LOW     QNX105  6      1      sanitizers and Linux-only linker flags  [verify]
+INFO    QNX007  3      1      prctl()  [verify]
+INFO    QNX024  1      1      Linux file-sync and allocation extensions
+INFO    QNX027  1      1      Linux-only mmap/madvise options  [verify]
+
+QNX001  epoll event loop  (21 findings)  [documented in QNX 8.0 docs]
+  src/ae_epoll.c:32  #include <sys/epoll.h>
+  src/ae_epoll.c:36  struct epoll_event
+  src/ae_epoll.c:43  struct epoll_event
+  ... and 18 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a
+    SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse()
+    when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms
+    are one-shot: re-arm after every delivery.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/ionotify.html

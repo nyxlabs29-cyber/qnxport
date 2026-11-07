@@ -1,0 +1,44 @@
+qnxport 0.1.0 - QNX 8.0 porting scan
+scanned  tutorial/linux: 1 source files, 114 lines, 0 build files
+findings 14 high | 0 medium | 0 low | 0 info (info = already inside a Linux-only #if branch, or advice)  [3 rules, 14 findings]
+
+SEV     RULE    COUNT  FILES  WHAT
+HIGH    QNX001  9      1      epoll event loop
+HIGH    QNX003  3      1      timerfd timers
+HIGH    QNX002  2      1      eventfd wake-up primitive  [verify]
+
+QNX001  epoll event loop  (9 findings)  [documented in QNX 8.0 docs]
+  loop_epoll.c:6  #include <sys/epoll.h>
+  loop_epoll.c:19  struct epoll_event
+  loop_epoll.c:21  epoll_create1, EPOLL_CLOEXEC
+  loop_epoll.c:33  EPOLLIN
+  ... and 5 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a
+    SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse()
+    when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms
+    are one-shot: re-arm after every delivery.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/ionotify.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/poll.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/s/select.html
+
+QNX003  timerfd timers  (3 findings)  [documented in QNX 8.0 docs]
+  loop_epoll.c:8  #include <sys/timerfd.h>
+  loop_epoll.c:22  timerfd_create, TFD_NONBLOCK, TFD_CLOEXEC
+  loop_epoll.c:30  timerfd_settime
+  QNX 8.0: Create a POSIX timer with timer_create() and a SIGEV_PULSE event, arm it with
+    timer_settime(), and receive the pulse with MsgReceivePulse() in the same loop. timer_create()
+    accepts CLOCK_REALTIME, CLOCK_MONOTONIC and CLOCK_SOFTTIME. Alternatively derive the poll()
+    timeout from your next deadline.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/timer_create.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/timer_settime.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/s/sigevent.html
+
+QNX002  eventfd wake-up primitive  (2 findings)  [VERIFY on your SDP]
+  loop_epoll.c:7  #include <sys/eventfd.h>
+  loop_epoll.c:23  eventfd, EFD_NONBLOCK, EFD_CLOEXEC
+  QNX 8.0: To wake a poll()/select() loop from another thread use a pipe() (documented). In a
+    channel/pulse design send a pulse to the loop's channel with MsgSendPulse() instead of an fd
+    write.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pipe.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/msgsendpulse.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/msgreceivepulse.html

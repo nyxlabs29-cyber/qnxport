@@ -1,0 +1,115 @@
+qnxport 0.1.0 - QNX 8.0 porting scan
+scanned  htop-3.3.0: 11 source files, 5,694 lines, 2 build files
+findings 45 high | 11 medium | 0 low | 0 info (info = already inside a Linux-only #if branch, or advice)  [11 rules, 56 findings]
+
+SEV     RULE    COUNT  FILES  WHAT
+HIGH    QNX029  20     1      Linux capabilities
+HIGH    QNX014  8      1      /sys (sysfs) paths  [verify]
+HIGH    QNX008  7      1      CPU affinity
+HIGH    QNX022  6      1      raw syscall() / SYS_* numbers
+HIGH    QNX017  2      1      linux/ kernel UAPI headers  [verify]
+HIGH    QNX013  1      1      /proc paths (Linux layout)  [verify]
+HIGH    QNX035  1      1      systemd / udev integration  [verify]
+MEDIUM  QNX028  6      2      Linux-only open() flags  [verify]
+MEDIUM  QNX034  2      1      Linux socket options and netlink  [verify]
+MEDIUM  QNX104  2      1      OS detection that only knows Linux  [verify]
+MEDIUM  QNX019  1      1      Linux/glibc preprocessor guards  [verify]
+
+QNX029  Linux capabilities  (20 findings)  [documented in QNX 8.0 docs]
+  linux/Platform.c:68  #include <sys/capability.h>
+  linux/Platform.c:969  CAP_SYS_NICE
+  linux/Platform.c:972  CAP_NET_ADMIN
+  ... and 17 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS,
+    PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per
+    capability which ability you need.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability_create.html
+
+QNX014  /sys (sysfs) paths  (8 findings)  [VERIFY on your SDP]
+  linux/LinuxMachine.c:61  "/sys/devices/system/cpu"
+  linux/LinuxMachine.c:86  "/sys/devices/system/cpu/%s"
+  linux/LinuxMachine.c:227  "/sys/kernel/mm/hugepages"
+  ... and 5 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking
+    APIs, ...). Which one depends on your BSP: verify in the BSP documentation.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html
+
+QNX008  CPU affinity  (7 findings)  [documented in QNX 8.0 docs]
+  Affinity.c:91  cpu_set_t
+  Affinity.c:92  sched_getaffinity, cpu_set_t
+  Affinity.c:98  CPU_ISSET
+  ... and 4 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also
+    _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to
+    bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the
+    calling thread, so code that sets the affinity of ANOTHER thread or process
+    (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own
+    runmask (verify). sched_getcpu() has no documented equivalent: verify.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/threadctl.html
+
+QNX022  raw syscall() / SYS_* numbers  (6 findings)  [documented in QNX 8.0 docs]
+  linux/LinuxProcess.c:151  SYS_ioprio_get, __NR_ioprio_get
+  linux/LinuxProcess.c:152  SYS_ioprio_set, __NR_ioprio_set
+  linux/LinuxProcess.c:158  SYS_ioprio_get
+  ... and 3 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>).
+    Others: find the libc function, or QNX kernel call, that provides the feature.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/g/gettid.html
+
+QNX017  linux/ kernel UAPI headers  (2 findings)  [VERIFY on your SDP]
+  linux/LinuxProcessTable.c:27  #include <linux/netlink.h>
+  linux/LinuxProcessTable.c:28  #include <linux/taskstats.h>
+  QNX 8.0: Identify the device or service behind the header and use the matching QNX interface
+    (resource manager devctl()/ioctl() commands, Screen, QNX Sound Architecture, hw/ headers of the
+    BSP). The right header is device specific: verify in the BSP/SDK docs.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/ioctl.html
+
+QNX013  /proc paths (Linux layout)  (1 finding)  [VERIFY on your SDP]
+  Compat.c:136  "/proc/self/fd/%d"
+  QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the
+    Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the
+    executable path, QNX provides /proc/self/exefile (verify on your target).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.prog/topic/process_proc_filesystem.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html
+
+QNX035  systemd / udev integration  (1 finding)  [VERIFY on your SDP]
+  linux/SystemdMeter.c:29  #include <systemd/sd-bus.h>
+  QNX 8.0: Replace service notification and device hotplug with the QNX equivalents for your system:
+    process start-up via your boot scripts or system launch manager, procmgr_daemon() for
+    daemonizing (documented) and QNX device managers. Make the dependency optional (verify design).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_daemon.html
+
+QNX028  Linux-only open() flags  (6 findings)  [VERIFY on your SDP]
+  linux/LinuxMachine.c:41  O_PATH
+  linux/LinuxMachine.c:42  O_PATH
+  linux/LinuxMachine.c:81  O_PATH
+  ... and 3 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Use a mkstemp()+unlink() sequence for O_TMPFILE, drop O_NOATIME, and decide per
+    filesystem about O_DIRECT. Verify each flag is defined in your SDP <fcntl.h>.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mkostemp.html
+
+QNX034  Linux socket options and netlink  (2 findings)  [VERIFY on your SDP]
+  linux/LinuxProcessTable.c:27  #include <linux/netlink.h>
+  linux/LinuxProcessTable.c:195  NETLINK_GENERIC
+  QNX 8.0: Check each option in the QNX 8.0 networking documentation / your SDP <netinet/tcp.h>;
+    BSD-style alternatives (for example TCP_NOPUSH for corking, routing sockets instead of netlink)
+    are likely but must be verified.
+
+QNX104  OS detection that only knows Linux  (2 findings)  [VERIFY on your SDP]
+  configure.ac:15  AC_CANONICAL_HOST
+  configure.ac:25  host_os
+  QNX 8.0: Add a QNX branch (CMake with a QNX toolchain reports CMAKE_SYSTEM_NAME = QNX; autoconf
+    host triplets contain 'nto-qnx'): verify with your toolchain and your config.sub version.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html
+
+QNX019  Linux/glibc preprocessor guards  (1 finding)  [VERIFY on your SDP]
+  Affinity.c:22  __linux__
+  QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code
+    path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - <
+    /dev/null' on your SDP (verify).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html
+wrote markdown examples/htop-3.3.0\qnxport-report.md
+wrote json     examples/htop-3.3.0\qnxport-report.json
+wrote sarif    examples/htop-3.3.0\qnxport-report.sarif

@@ -1,0 +1,5 @@
+qnxport 0.1.0 - QNX 8.0 porting scan
+scanned  tutorial/portable: 1 source files, 98 lines, 0 build files
+findings 0 high | 0 medium | 0 low | 0 info (info = already inside a Linux-only #if branch, or advice)  [0 rules, 0 findings]
+
+No Linux-specific constructs from the rule set were found.

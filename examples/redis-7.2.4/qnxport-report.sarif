@@ -1,0 +1,3925 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "qnxport",
+          "version": "0.1.0",
+          "semanticVersion": "0.1.0",
+          "informationUri": "https://github.com/nyxlabs29-cyber/qnxport",
+          "rules": [
+            {
+              "id": "QNX001",
+              "name": "EpollEventLoop",
+              "shortDescription": {
+                "text": "epoll event loop"
+              },
+              "fullDescription": {
+                "text": "epoll has no page in the QNX 8.0 C Library Reference. The ionotify() page states that it 'corresponds to the Linux epoll() function and BSD's kqueue()'."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. (confidence: documented)",
+                "markdown": "**QNX 8.0 strategy:** Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery.\n\n**Why:** epoll has no page in the QNX 8.0 C Library Reference. The ionotify() page states that it 'corresponds to the Linux epoll() function and BSD's kqueue()'.\n\n- [ionotify()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/ionotify.html)\n- [poll(), ppoll()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/poll.html)\n- [select(), pselect()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/s/select.html)\n- [MsgReceivePulse()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/msgreceivepulse.html)\n- [MsgRegisterEvent()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/msgregisterevent.html)\n- [sigevent](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/s/sigevent.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/ionotify.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "events",
+                  "confidence-documented"
+                ],
+                "qnxport-confidence": "documented"
+              }
+            },
+            {
+              "id": "QNX007",
+              "name": "Prctl",
+              "shortDescription": {
+                "text": "prctl()"
+              },
+              "fullDescription": {
+                "text": "prctl has no page in the QNX 8.0 C Library Reference."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: PR_SET_NAME / PR_GET_NAME map to pthread_setname_np(0, name) / pthread_getname_np() (documented; the length limit is _NTO_THREAD_NAME_MAX instead of Linux's 16 bytes). Other options (PR_SET_PDEATHSIG, PR_SET_DUMPABLE, PR_SET_NO_NEW_PRIVS, PR_SET_SECCOMP ...) have no documented single-call equivalent: verify, or use procmgr_ability() for privilege control. (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** PR_SET_NAME / PR_GET_NAME map to pthread_setname_np(0, name) / pthread_getname_np() (documented; the length limit is _NTO_THREAD_NAME_MAX instead of Linux's 16 bytes). Other options (PR_SET_PDEATHSIG, PR_SET_DUMPABLE, PR_SET_NO_NEW_PRIVS, PR_SET_SECCOMP ...) have no documented single-call equivalent: verify, or use procmgr_ability() for privilege control.\n\n**Why:** prctl has no page in the QNX 8.0 C Library Reference.\n\n- [pthread_setname_np()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pthread_setname_np.html)\n- [pthread_getname_np()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pthread_getname_np.html)\n- [procmgr_ability()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pthread_setname_np.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "process",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX008",
+              "name": "CpuAffinity",
+              "shortDescription": {
+                "text": "CPU affinity"
+              },
+              "fullDescription": {
+                "text": "sched_setaffinity / pthread_setaffinity_np and the CPU_* macros have no page in the QNX 8.0 C Library Reference."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. (confidence: documented)",
+                "markdown": "**QNX 8.0 strategy:** For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify.\n\n**Why:** sched_setaffinity / pthread_setaffinity_np and the CPU_* macros have no page in the QNX 8.0 C Library Reference.\n\n- [ThreadCtl()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/threadctl.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/threadctl.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "process",
+                  "confidence-documented"
+                ],
+                "qnxport-confidence": "documented"
+              }
+            },
+            {
+              "id": "QNX013",
+              "name": "ProcPathsLinuxLayout",
+              "shortDescription": {
+                "text": "/proc paths (Linux layout)"
+              },
+              "fullDescription": {
+                "text": "QNX has a /proc, but it is a process-manager namespace with its own layout, not Linux text files such as /proc/cpuinfo, /proc/meminfo, /proc/stat or /proc/<pid>/stat."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target).\n\n**Why:** QNX has a /proc, but it is a process-manager namespace with its own layout, not Linux text files such as /proc/cpuinfo, /proc/meminfo, /proc/stat or /proc/<pid>/stat.\n\n- [Controlling processes via the /proc filesystem (Programmer's Guide)](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.prog/topic/process_proc_filesystem.html)\n- [devctl()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.prog/topic/process_proc_filesystem.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "system",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX019",
+              "name": "LinuxGlibcPreprocessorGuards",
+              "shortDescription": {
+                "text": "Linux/glibc preprocessor guards"
+              },
+              "fullDescription": {
+                "text": "Code under #ifdef __linux__ / __GLIBC__ is not compiled by qcc for QNX, so such branches silently disappear and some #else branches may pick a BSD or generic path that was never tested on QNX."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify).\n\n**Why:** Code under #ifdef __linux__ / __GLIBC__ is not compiled by qcc for QNX, so such branches silently disappear and some #else branches may pick a BSD or generic path that was never tested on QNX.\n\n- [qcc / q++ (Utilities Reference)](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "portability",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX020",
+              "name": "GlibcGnuExtensions",
+              "shortDescription": {
+                "text": "glibc / GNU extensions"
+              },
+              "fullDescription": {
+                "text": "These GNU extensions have no page in the QNX 8.0 C Library Reference (they may still be available in your SDP headers or not: the compiler is the judge)."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify). (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify).\n\n**Why:** These GNU extensions have no page in the QNX 8.0 C Library Reference (they may still be available in your SDP headers or not: the compiler is the judge).\n\n- [realpath()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/r/realpath.html)\n- [getopt_long()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/g/getopt_long.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/r/realpath.html",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "portability",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX023",
+              "name": "Accept4Dup3Sock_*CreationFlags",
+              "shortDescription": {
+                "text": "accept4 / dup3 / SOCK_* creation flags"
+              },
+              "fullDescription": {
+                "text": "accept4 and dup3 have no page in the QNX 8.0 C Library Reference; SOCK_NONBLOCK/SOCK_CLOEXEC support depends on the network stack headers of your SDP."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Use accept()/dup2()/socket() followed by fcntl(fd, F_SETFD, FD_CLOEXEC) and fcntl(fd, F_SETFL, O_NONBLOCK) (a small wrapper keeps the call sites clean). Note the non-atomic window if you fork concurrently (verify). pipe2() and mkostemp() are documented and can stay. (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Use accept()/dup2()/socket() followed by fcntl(fd, F_SETFD, FD_CLOEXEC) and fcntl(fd, F_SETFL, O_NONBLOCK) (a small wrapper keeps the call sites clean). Note the non-atomic window if you fork concurrently (verify). pipe2() and mkostemp() are documented and can stay.\n\n**Why:** accept4 and dup3 have no page in the QNX 8.0 C Library Reference; SOCK_NONBLOCK/SOCK_CLOEXEC support depends on the network stack headers of your SDP.\n\n- [pipe(), pipe2()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pipe.html)\n- [mkostemp()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mkostemp.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pipe.html",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "io",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX024",
+              "name": "LinuxFileSyncAndAllocationExtensions",
+              "shortDescription": {
+                "text": "Linux file-sync and allocation extensions"
+              },
+              "fullDescription": {
+                "text": "fallocate, sync_file_range, syncfs and readahead have no page in the QNX 8.0 C Library Reference."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: fallocate() -> posix_fallocate() (documented); sync_file_range()/syncfs() -> fdatasync()/fsync()/sync() (documented where listed in the C Library Reference); readahead() -> posix_fadvise() (documented) or drop. (confidence: documented)",
+                "markdown": "**QNX 8.0 strategy:** fallocate() -> posix_fallocate() (documented); sync_file_range()/syncfs() -> fdatasync()/fsync()/sync() (documented where listed in the C Library Reference); readahead() -> posix_fadvise() (documented) or drop.\n\n**Why:** fallocate, sync_file_range, syncfs and readahead have no page in the QNX 8.0 C Library Reference.\n\n- [posix_fallocate()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/posix_fallocate.html)\n- [fdatasync()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/f/fdatasync.html)\n- [posix_fadvise()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/posix_fadvise.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/posix_fallocate.html",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "io",
+                  "confidence-documented"
+                ],
+                "qnxport-confidence": "documented"
+              }
+            },
+            {
+              "id": "QNX027",
+              "name": "LinuxOnlyMmapMadviseOptions",
+              "shortDescription": {
+                "text": "Linux-only mmap/madvise options"
+              },
+              "fullDescription": {
+                "text": "mmap() on QNX documents MAP_ANON (not MAP_ANONYMOUS), MAP_LAZY, MAP_NORESERVE, MAP_STACK and others; MAP_POPULATE, MAP_HUGETLB, MAP_GROWSDOWN, MAP_LOCKED, MAP_32BIT and mremap() are Linux features."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Use MAP_ANON, drop prefault/huge-page flags (or find the QNX equivalent in the mmap() page), and replace mremap() with mmap + copy. madvise() has no C Library Reference page: use posix_madvise() (documented) (verify). (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Use MAP_ANON, drop prefault/huge-page flags (or find the QNX equivalent in the mmap() page), and replace mremap() with mmap + copy. madvise() has no C Library Reference page: use posix_madvise() (documented) (verify).\n\n**Why:** mmap() on QNX documents MAP_ANON (not MAP_ANONYMOUS), MAP_LAZY, MAP_NORESERVE, MAP_STACK and others; MAP_POPULATE, MAP_HUGETLB, MAP_GROWSDOWN, MAP_LOCKED, MAP_32BIT and mremap() are Linux features.\n\n- [mmap()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mmap.html)\n- [posix_madvise()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/posix_madvise.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mmap.html",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "io",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX035",
+              "name": "SystemdUdevIntegration",
+              "shortDescription": {
+                "text": "systemd / udev integration"
+              },
+              "fullDescription": {
+                "text": "<systemd/...> and <libudev.h> are Linux service/device-manager libraries."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Replace service notification and device hotplug with the QNX equivalents for your system: process start-up via your boot scripts or system launch manager, procmgr_daemon() for daemonizing (documented) and QNX device managers. Make the dependency optional (verify design). (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Replace service notification and device hotplug with the QNX equivalents for your system: process start-up via your boot scripts or system launch manager, procmgr_daemon() for daemonizing (documented) and QNX device managers. Make the dependency optional (verify design).\n\n**Why:** <systemd/...> and <libudev.h> are Linux service/device-manager libraries.\n\n- [procmgr_daemon()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_daemon.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_daemon.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "system",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX101",
+              "name": "LinuxLinkFlagsLrtLdlLpthread",
+              "shortDescription": {
+                "text": "Linux link flags (-lrt -ldl -lpthread)"
+              },
+              "fullDescription": {
+                "text": "The QNX 8.0 pages for pthread_create(), dlopen() and timer_create() list libc as the library (\"usually included automatically\"); separate librt/libdl/libpthread are normally not needed."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships).\n\n**Why:** The QNX 8.0 pages for pthread_create(), dlopen() and timer_create() list libc as the library (\"usually included automatically\"); separate librt/libdl/libpthread are normally not needed.\n\n- [pthread_create()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pthread_create.html)\n- [dlopen()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/dlopen.html)\n- [timer_create()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/timer_create.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pthread_create.html",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "build",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX105",
+              "name": "SanitizersAndLinuxOnlyLinkerFlags",
+              "shortDescription": {
+                "text": "sanitizers and Linux-only linker flags"
+              },
+              "fullDescription": {
+                "text": "-fsanitize=*, -Wl,--no-undefined and -Wl,-z,* are common on Linux builds; whether your QNX SDP's compiler/linker accepts them is not stated in the pages searched."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Make them conditional for the QNX target and test the link with your SDP (verify). (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Make them conditional for the QNX target and test the link with your SDP (verify).\n\n**Why:** -fsanitize=*, -Wl,--no-undefined and -Wl,-z,* are common on Linux builds; whether your QNX SDP's compiler/linker accepts them is not stated in the pages searched.\n\n- [qcc / q++ (Utilities Reference)](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "build",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            }
+          ]
+        }
+      },
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "uri": "file:///"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: #include <sys/epoll.h>. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 32,
+                  "snippet": {
+                    "text": "#include <sys/epoll.h>"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "bf1184a03fc1c4f5044c82d29cb2fcb7e7363d8e"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: struct epoll_event. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 36,
+                  "snippet": {
+                    "text": "struct epoll_event *events;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "b228b271e61d54201afca28b3c50a1e64f56cef4"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: struct epoll_event. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 43,
+                  "snippet": {
+                    "text": "state->events = zmalloc(sizeof(struct epoll_event)*eventLoop->setsize);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "d33fa2d4ac90d8f1707f2d8c88b5b1ad45704c04"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: epoll_create. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented] Note: Replace the epoll fd with a channel (ChannelCreate()) plus a connection (ConnectAttach()) for SIGEV_PULSE_INIT(), or with a pollfd array."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 48,
+                  "snippet": {
+                    "text": "state->epfd = epoll_create(1024); /* 1024 is just a hint for the kernel */"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "e1ab57fc9c3bb0c643727802d880faef3bda0089"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: struct epoll_event. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 62,
+                  "snippet": {
+                    "text": "state->events = zrealloc(state->events, sizeof(struct epoll_event)*setsize);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "b96e20517bd6b6563e1b9a5daa46378e6fc45284"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: struct epoll_event. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 76,
+                  "snippet": {
+                    "text": "struct epoll_event ee = {0}; /* avoid valgrind warning */"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "f142cb8808c15f569aafd3cf16e2a7eb5f46e6da"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: EPOLL_CTL_ADD, EPOLL_CTL_MOD. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 80,
+                  "snippet": {
+                    "text": "EPOLL_CTL_ADD : EPOLL_CTL_MOD;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "8936ff13195f5a5dab116274b23e86404628873c"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: EPOLLIN. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 84,
+                  "snippet": {
+                    "text": "if (mask & AE_READABLE) ee.events |= EPOLLIN;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "fed4033da3bc325d9c454093abbe4e79d7babba5"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: EPOLLOUT. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 85,
+                  "snippet": {
+                    "text": "if (mask & AE_WRITABLE) ee.events |= EPOLLOUT;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "e45fad1878ace8d68c0e15e9547fc41a88a59bf1"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: epoll_ctl. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 87,
+                  "snippet": {
+                    "text": "if (epoll_ctl(state->epfd,op,fd,&ee) == -1) return -1;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "3a64d787dc155b742493f2768c4b9455e86f4713"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: struct epoll_event. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 93,
+                  "snippet": {
+                    "text": "struct epoll_event ee = {0}; /* avoid valgrind warning */"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "f142cb8808c15f569aafd3cf16e2a7eb5f46e6da"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: EPOLLIN. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 97,
+                  "snippet": {
+                    "text": "if (mask & AE_READABLE) ee.events |= EPOLLIN;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "fed4033da3bc325d9c454093abbe4e79d7babba5"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: EPOLLOUT. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 98,
+                  "snippet": {
+                    "text": "if (mask & AE_WRITABLE) ee.events |= EPOLLOUT;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "e45fad1878ace8d68c0e15e9547fc41a88a59bf1"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: epoll_ctl, EPOLL_CTL_MOD. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 101,
+                  "snippet": {
+                    "text": "epoll_ctl(state->epfd,EPOLL_CTL_MOD,fd,&ee);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "f4ec03015a21c0529d56a9cf7b0a1013349dd85a"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: epoll_ctl, EPOLL_CTL_DEL. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 105,
+                  "snippet": {
+                    "text": "epoll_ctl(state->epfd,EPOLL_CTL_DEL,fd,&ee);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "b842120d911dc9c1c58f27bbe9bf7609066aef1d"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: epoll_wait. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 113,
+                  "snippet": {
+                    "text": "retval = epoll_wait(state->epfd,state->events,eventLoop->setsize,"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "a2a00b416b709fc2f98682df119262be14b2fbd0"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: struct epoll_event. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 121,
+                  "snippet": {
+                    "text": "struct epoll_event *e = state->events+j;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "da556844e5a1b77b692e9049b67323eacf978795"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: EPOLLIN. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 123,
+                  "snippet": {
+                    "text": "if (e->events & EPOLLIN) mask |= AE_READABLE;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5735cd235d65b2070d869f633324a0f6457e2af6"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: EPOLLOUT. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 124,
+                  "snippet": {
+                    "text": "if (e->events & EPOLLOUT) mask |= AE_WRITABLE;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "d8fff4f367e623ad89492e28baaca376cb459dda"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: EPOLLERR. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 125,
+                  "snippet": {
+                    "text": "if (e->events & EPOLLERR) mask |= AE_WRITABLE|AE_READABLE;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "26646b9e6ca2838b047328ecab18cc0c4aa0b761"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX001",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "epoll event loop: EPOLLHUP. QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse() when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms are one-shot: re-arm after every delivery. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/ae_epoll.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 126,
+                  "snippet": {
+                    "text": "if (e->events & EPOLLHUP) mask |= AE_WRITABLE|AE_READABLE;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "6d4376df3a59d7b60ffea95c161f855a50ac04a0"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX013",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "/proc paths (Linux layout): \"/proc/self/maps\". QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/debug.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1966,
+                  "snippet": {
+                    "text": "fp = fopen(\"/proc/self/maps\",\"r\");"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "990a077e2802f3773bc837547937177a0766c02d"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX013",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "/proc paths (Linux layout): \"/proc/self/oom_score_adj\". QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/server.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 2227,
+                  "snippet": {
+                    "text": "fd = open(\"/proc/self/oom_score_adj\", O_RDONLY);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "12939232673307a76526eca2841200305a39442b"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX013",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "/proc paths (Linux layout): \"/proc/self/oom_score_adj\". QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/server.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 2252,
+                  "snippet": {
+                    "text": "fd = open(\"/proc/self/oom_score_adj\", O_WRONLY);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "2e3d0d083413319d3d41ccda36c78641303ec360"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX013",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "/proc paths (Linux layout): \"/proc/sys/net/core/somaxconn\". QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/server.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 2357,
+                  "snippet": {
+                    "text": "FILE *fp = fopen(\"/proc/sys/net/core/somaxconn\",\"r\");"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "b370f0962a6cbc8ac9722ba705430915bf1cc86b"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX035",
+          "ruleIndex": 9,
+          "level": "error",
+          "message": {
+            "text": "systemd / udev integration: sd_notify. QNX 8.0: Replace service notification and device hotplug with the QNX equivalents for your system: process start-up via your boot scripts or system launch manager, procmgr_daemon() for daemonizing (documented) and QNX device managers. Make the dependency optional (verify design). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/server.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 6915,
+                  "snippet": {
+                    "text": "int ret = sd_notify(0, sd_notify_msg);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "191a1f11dfd7f2faf7a0af907d99ac8b279130dd"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "CPU affinity: CPU_ZERO. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setcpuaffinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 90,
+                  "snippet": {
+                    "text": "CPU_ZERO(&cpuset);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "b8efd08fa5951be11632117a28371bbf57ce1655"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "CPU affinity: CPU_SET. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setcpuaffinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 129,
+                  "snippet": {
+                    "text": "CPU_SET(a, &cpuset);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "2c6b835e8e6758482d6122d95e29843c36d634e3"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "CPU affinity: pthread_setaffinity_np. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setcpuaffinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 147,
+                  "snippet": {
+                    "text": "pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5cead2ef14f1a227496cdaf45955116ee73d0050"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "CPU affinity: pthread_setaffinity_np. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setcpuaffinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 150,
+                  "snippet": {
+                    "text": "pthread_setaffinity_np(pthread_self(), cpuset_size(cpuset), cpuset);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "43cb0fbf6bc3ef492f46b85163113deebdcc3698"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX013",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "/proc paths (Linux layout): \"/proc/self/stat\". QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/zmalloc.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 468,
+                  "snippet": {
+                    "text": "if ((fd = open(\"/proc/self/stat\",O_RDONLY)) == -1) return 0;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "abe0d8fa90b31518b03e8a16044d8611d137c821"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX013",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "/proc paths (Linux layout): \"/proc/%ld/psinfo\". QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/zmalloc.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 606,
+                  "snippet": {
+                    "text": "snprintf(filename,256,\"/proc/%ld/psinfo\",(long) getpid());"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "0b40dc4c93bddaec9a253e6e0a9084e5a15ac376"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX013",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "/proc paths (Linux layout): \"/proc/self/smaps\". QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/zmalloc.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 717,
+                  "snippet": {
+                    "text": "fp = fopen(\"/proc/self/smaps\",\"r\");"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "0e3cc4028f0271bb11d65816b05ba8988d8ebb7f"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX013",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "/proc paths (Linux layout): \"/proc/%ld/smaps\". QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/zmalloc.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 720,
+                  "snippet": {
+                    "text": "snprintf(filename,sizeof(filename),\"/proc/%ld/smaps\",pid);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "09d40dfc352c3403330c1e6b11ef61e66ad02157"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/anet.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 146,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "361026adce4871095b43becfefcf55234db4ac72"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX023",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "accept4 / dup3 / SOCK_* creation flags: accept4, SOCK_NONBLOCK, SOCK_CLOEXEC. QNX 8.0: Use accept()/dup2()/socket() followed by fcntl(fd, F_SETFD, FD_CLOEXEC) and fcntl(fd, F_SETFL, O_NONBLOCK) (a small wrapper keeps the call sites clean). Note the non-atomic window if you fork concurrently (verify). pipe2() and mkostemp() are documented and can stay. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/anet.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 527,
+                  "snippet": {
+                    "text": "fd = accept4(s, sa, len,  SOCK_NONBLOCK | SOCK_CLOEXEC);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "4ca76f7f8e3f18ce8c4623068f497a80949c1548"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/anet.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 636,
+                  "snippet": {
+                    "text": "#if defined(__linux__) || defined(__FreeBSD__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5b6236caa4cac98ff8a744d9373e31bfc941cded"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 38,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5c4b60918f50a44e3fb25700add134c30f9758d5"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 57,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5c4b60918f50a44e3fb25700add134c30f9758d5"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__, __GLIBC__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 78,
+                  "snippet": {
+                    "text": "#if defined(__APPLE__) || (defined(__linux__) && defined(__GLIBC__)) || \\"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "232f3981f70fe89facc54a5d6e07f1b872d0aa6f"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 85,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5c4b60918f50a44e3fb25700add134c30f9758d5"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 94,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5c4b60918f50a44e3fb25700add134c30f9758d5"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 99,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5c4b60918f50a44e3fb25700add134c30f9758d5"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 116,
+                  "snippet": {
+                    "text": "#if defined(__linux__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "fde7fa69e21e784aa448c60ec7fdec49778df62e"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 163,
+                  "snippet": {
+                    "text": "#if (defined(__linux__) && defined(SYNC_FILE_RANGE_WAIT_BEFORE))"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "dcdf6eee66aa361b8260336a7e065738e25c4fe5"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 183,
+                  "snippet": {
+                    "text": "#if (defined __linux || defined __APPLE__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "8c0d75de658117c1f9cebe456da15efd7f823e27"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 197,
+                  "snippet": {
+                    "text": "#if defined(linux) || defined(__linux__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "529860fd5520cd6f3fd9911b9217f4a02f3e14dd"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __GLIBC__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 261,
+                  "snippet": {
+                    "text": "#if (defined(__GLIBC__) && defined(__GLIBC_PREREQ))"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "1c2a5603c094b198427ec407e5e780732533a21d"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 287,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5c4b60918f50a44e3fb25700add134c30f9758d5"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 311,
+                  "snippet": {
+                    "text": "#if (defined __linux || defined __NetBSD__ || defined __FreeBSD__ || defined __DragonFly__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "2bef6e74c42555770cf37f263fea5d6e4d5389f7"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 317,
+                  "snippet": {
+                    "text": "#if defined(__linux__) || __FreeBSD__ >= 10"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "c0d519246d56986fc0b613709d8ff98443f07a06"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX020",
+          "ruleIndex": 5,
+          "level": "warning",
+          "message": {
+            "text": "glibc / GNU extensions: #include <execinfo.h>. QNX 8.0: Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/debug.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 48,
+                  "snippet": {
+                    "text": "#include <execinfo.h>"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "d54bc3befdcedd6c79ce63adb0d9d6dd5385955e"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/debug.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1216,
+                  "snippet": {
+                    "text": "#elif defined(__linux__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "9de3a3c067c3e04be4a6fe7884f96b36f7f8f038"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/debug.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1403,
+                  "snippet": {
+                    "text": "#elif defined(__linux__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "9de3a3c067c3e04be4a6fe7884f96b36f7f8f038"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX020",
+          "ruleIndex": 5,
+          "level": "warning",
+          "message": {
+            "text": "glibc / GNU extensions: backtrace. QNX 8.0: Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/debug.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1834,
+                  "snippet": {
+                    "text": "trace_size = backtrace(trace, 100);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "bc5d9a6a9cbc5d6d2db5f98ccaff298ec40da099"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX020",
+          "ruleIndex": 5,
+          "level": "warning",
+          "message": {
+            "text": "glibc / GNU extensions: backtrace_symbols_fd. QNX 8.0: Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/debug.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1843,
+                  "snippet": {
+                    "text": "backtrace_symbols_fd(&eip, 1, fd);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "56f101a9e62ac3f4e854a0057885d61411d93a96"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX020",
+          "ruleIndex": 5,
+          "level": "warning",
+          "message": {
+            "text": "glibc / GNU extensions: backtrace_symbols_fd. QNX 8.0: Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/debug.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1849,
+                  "snippet": {
+                    "text": "backtrace_symbols_fd(trace+uplevel, trace_size-uplevel, fd);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5bc758cda46483f270cb97b291928c2e18e645c5"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/fmacros.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 35,
+                  "snippet": {
+                    "text": "#if defined(__linux__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "0efb1d5172c882fc9654fb5915844f0a102a24b0"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/fmacros.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 44,
+                  "snippet": {
+                    "text": "#if defined(__linux__) || defined(__OpenBSD__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "f614bef1599899885f9edd1b1a12aaa9e4c839db"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/fmacros.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 71,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "24101ef8a235b221bbe07515977af2e103e77099"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/monotonic.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 29,
+                  "snippet": {
+                    "text": "#if defined(USE_PROCESSOR_CLOCK) && defined(__x86_64__) && defined(__linux__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "dfd6d0b3e1ecb228f7f80b8ee3b194e08139637f"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/monotonic.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 159,
+                  "snippet": {
+                    "text": "#if defined(USE_PROCESSOR_CLOCK) && defined(__x86_64__) && defined(__linux__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "dfd6d0b3e1ecb228f7f80b8ee3b194e08139637f"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/server.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 64,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "9bc431fe2eb53c879560aee7023288f8b6bfa9e9"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/server.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 6311,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "9bc431fe2eb53c879560aee7023288f8b6bfa9e9"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/server.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 6726,
+                  "snippet": {
+                    "text": "#if defined(USE_JEMALLOC) && defined(__linux__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "beaea0237c2329a07399cb3221ac60e97a11ffa5"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/server.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7253,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "9bc431fe2eb53c879560aee7023288f8b6bfa9e9"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setcpuaffinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 32,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "63c5f26a5e18a1b3960adafd712b402395d8c762"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setcpuaffinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 76,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "63c5f26a5e18a1b3960adafd712b402395d8c762"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setcpuaffinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 140,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "63c5f26a5e18a1b3960adafd712b402395d8c762"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setproctitle.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 51,
+                  "snippet": {
+                    "text": "#if (defined __linux || defined __APPLE__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "757dda38bdb312dea8144742a34875cf8e537da3"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __GLIBC__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setproctitle.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 53,
+                  "snippet": {
+                    "text": "#ifdef __GLIBC__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "90537fadf1475550cdd38f7e48d553661ecadbae"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setproctitle.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 235,
+                  "snippet": {
+                    "text": "#if __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "b9c2254e31ec835b39588103dbac0fe96995e18f"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/util.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 993,
+                  "snippet": {
+                    "text": "#if defined(__linux__) || defined(__sun)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5e4d02b8347eca1c59d356a52d6afcfa89ab5c27"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/util.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1373,
+                  "snippet": {
+                    "text": "#if defined(__linux__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "10e56af02b7bfcac1465b3029ce780648536b4f0"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/util.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1421,
+                  "snippet": {
+                    "text": "#if defined(__linux__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "10e56af02b7bfcac1465b3029ce780648536b4f0"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/zmalloc.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 41,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "4aeecceb02f6a36c903e038beedaae9008f7c140"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/zmalloc.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 424,
+                  "snippet": {
+                    "text": "#if defined(USE_JEMALLOC) && defined(__linux__)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "00b33c9067c086fadbf882f0adaf31c53f8dc13a"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX105",
+          "ruleIndex": 11,
+          "level": "note",
+          "message": {
+            "text": "sanitizers and Linux-only linker flags: -fsanitize. QNX 8.0: Make them conditional for the QNX target and test the link with your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 98,
+                  "snippet": {
+                    "text": "CFLAGS+=-fsanitize=address -fno-sanitize-recover=all -fno-omit-frame-pointer"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "207ed591d19a6ac8acfa034abb5140106c2ce87e"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX105",
+          "ruleIndex": 11,
+          "level": "note",
+          "message": {
+            "text": "sanitizers and Linux-only linker flags: -fsanitize. QNX 8.0: Make them conditional for the QNX target and test the link with your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 99,
+                  "snippet": {
+                    "text": "LDFLAGS+=-fsanitize=address"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "c721f8df48e6d082f1ecb283d48935445f508310"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX105",
+          "ruleIndex": 11,
+          "level": "note",
+          "message": {
+            "text": "sanitizers and Linux-only linker flags: -fsanitize. QNX 8.0: Make them conditional for the QNX target and test the link with your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 103,
+                  "snippet": {
+                    "text": "CFLAGS+=-fsanitize=undefined -fno-sanitize-recover=all -fno-omit-frame-pointer"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "40c1f94c0ffd1f611ef04f5d146af9dce3a341ec"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX105",
+          "ruleIndex": 11,
+          "level": "note",
+          "message": {
+            "text": "sanitizers and Linux-only linker flags: -fsanitize. QNX 8.0: Make them conditional for the QNX target and test the link with your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 104,
+                  "snippet": {
+                    "text": "LDFLAGS+=-fsanitize=undefined"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "9d354e94614065ada1d259061c67fbbe79341f44"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX105",
+          "ruleIndex": 11,
+          "level": "note",
+          "message": {
+            "text": "sanitizers and Linux-only linker flags: -fsanitize. QNX 8.0: Make them conditional for the QNX target and test the link with your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 107,
+                  "snippet": {
+                    "text": "CFLAGS+=-fsanitize=thread -fno-sanitize-recover=all -fno-omit-frame-pointer"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "765bb2961ff2868e8ab9387bd5f89f377f017ace"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX105",
+          "ruleIndex": 11,
+          "level": "note",
+          "message": {
+            "text": "sanitizers and Linux-only linker flags: -fsanitize. QNX 8.0: Make them conditional for the QNX target and test the link with your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 108,
+                  "snippet": {
+                    "text": "LDFLAGS+=-fsanitize=thread"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "8cba05e79b81fb37c9b1b4aefc7c77640db8f879"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX101",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Linux link flags (-lrt -ldl -lpthread): -ldl, -lpthread, -lrt. QNX 8.0: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 142,
+                  "snippet": {
+                    "text": "FINAL_LIBS+= -ldl -lnsl -lsocket -lresolv -lpthread -lrt"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "bc6111c1dae7de2bdffc30494a2eca1d849fe9b6"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX101",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Linux link flags (-lrt -ldl -lpthread): -ldl. QNX 8.0: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 149,
+                  "snippet": {
+                    "text": "FINAL_LIBS+= -ldl"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "80ea54f4e747947ddaaea67aeac023f322293be2"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX101",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Linux link flags (-lrt -ldl -lpthread): -ldl. QNX 8.0: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 164,
+                  "snippet": {
+                    "text": "FINAL_LIBS+=-ldl -pthread -lcrypt -lbsd"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "b10e4732bcf047d864254a61b1ebc0716ddda101"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX101",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Linux link flags (-lrt -ldl -lpthread): -lpthread. QNX 8.0: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 168,
+                  "snippet": {
+                    "text": "FINAL_LIBS+= -lpthread"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "0c41895aa9eda62ae0316347c032fc9b6875cec6"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX101",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Linux link flags (-lrt -ldl -lpthread): -lpthread. QNX 8.0: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 178,
+                  "snippet": {
+                    "text": "FINAL_LIBS+= -lpthread"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "0c41895aa9eda62ae0316347c032fc9b6875cec6"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX101",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Linux link flags (-lrt -ldl -lpthread): -lpthread. QNX 8.0: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 187,
+                  "snippet": {
+                    "text": "FINAL_LIBS+= -lpthread -lexecinfo"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "3224fe6e0385e026bfb092fceb85b47f33195830"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX101",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Linux link flags (-lrt -ldl -lpthread): -lpthread. QNX 8.0: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 191,
+                  "snippet": {
+                    "text": "FINAL_LIBS+= -lpthread -lexecinfo"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "3224fe6e0385e026bfb092fceb85b47f33195830"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX101",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Linux link flags (-lrt -ldl -lpthread): -lpthread. QNX 8.0: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 195,
+                  "snippet": {
+                    "text": "FINAL_LIBS+= -lpthread -lexecinfo"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "3224fe6e0385e026bfb092fceb85b47f33195830"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX101",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Linux link flags (-lrt -ldl -lpthread): -lpthread. QNX 8.0: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 199,
+                  "snippet": {
+                    "text": "FINAL_LIBS+= -lpthread -lexecinfo"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "3224fe6e0385e026bfb092fceb85b47f33195830"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX101",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Linux link flags (-lrt -ldl -lpthread): -lpthread. QNX 8.0: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 205,
+                  "snippet": {
+                    "text": "FINAL_LIBS+= -lpthread"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "0c41895aa9eda62ae0316347c032fc9b6875cec6"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX101",
+          "ruleIndex": 10,
+          "level": "note",
+          "message": {
+            "text": "Linux link flags (-lrt -ldl -lpthread): -ldl, -lrt. QNX 8.0: Drop the flags on QNX, or make them conditional so a missing library does not break the link (verify which stub libraries your SDP ships). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Makefile",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 209,
+                  "snippet": {
+                    "text": "FINAL_LIBS+=-ldl -pthread -lrt"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "67c8a6f9a73a7f3aff5a88325f240c933c7b6afd"
+          },
+          "properties": {
+            "severity": "low",
+            "baseSeverity": "low",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX020",
+          "ruleIndex": 5,
+          "level": "note",
+          "message": {
+            "text": "glibc / GNU extensions: #include <features.h>. QNX 8.0: Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify). [verify on your SDP] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 39,
+                  "snippet": {
+                    "text": "#include <features.h>"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "fee7dfcd75f5398d0b3572ce6ebc69e82bb2504b"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "medium",
+            "linuxGuarded": true,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX024",
+          "ruleIndex": 7,
+          "level": "note",
+          "message": {
+            "text": "Linux file-sync and allocation extensions: sync_file_range. QNX 8.0: fallocate() -> posix_fallocate() (documented); sync_file_range()/syncfs() -> fdatasync()/fsync()/sync() (documented where listed in the C Library Reference); readahead() -> posix_fadvise() (documented) or drop. [documented] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/config.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 165,
+                  "snippet": {
+                    "text": "#define rdb_fsync_range(fd,off,size) sync_file_range(fd,off,size,SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE)"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "a5e31c3949ca191dad058b8f368a544a3ce6b26c"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "medium",
+            "linuxGuarded": true,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX020",
+          "ruleIndex": 5,
+          "level": "note",
+          "message": {
+            "text": "glibc / GNU extensions: #include <features.h>. QNX 8.0: Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify). [verify on your SDP] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/fmacros.h",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 73,
+                  "snippet": {
+                    "text": "#include <features.h>"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "ba8b85967c62499e2df89974818faca58bb24c1b"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "medium",
+            "linuxGuarded": true,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX013",
+          "ruleIndex": 3,
+          "level": "note",
+          "message": {
+            "text": "/proc paths (Linux layout): \"/proc/cpuinfo\". QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). [verify on your SDP] (already inside a Linux-only #if branch; make sure a QNX branch exists) Note: System-wide Linux text files: no QNX counterpart in /proc; use sysconf()/system page APIs (verify)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/monotonic.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 60,
+                  "snippet": {
+                    "text": "FILE *cpuinfo = fopen(\"/proc/cpuinfo\", \"r\");"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "895365ffc98038133ef3afff1e166c65f9345ba3"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "high",
+            "linuxGuarded": true,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX007",
+          "ruleIndex": 1,
+          "level": "note",
+          "message": {
+            "text": "prctl(): #include <sys/prctl.h>. QNX 8.0: PR_SET_NAME / PR_GET_NAME map to pthread_setname_np(0, name) / pthread_getname_np() (documented; the length limit is _NTO_THREAD_NAME_MAX instead of Linux's 16 bytes). Other options (PR_SET_PDEATHSIG, PR_SET_DUMPABLE, PR_SET_NO_NEW_PRIVS, PR_SET_SECCOMP ...) have no documented single-call equivalent: verify, or use procmgr_ability() for privilege control. [verify on your SDP] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/server.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 6312,
+                  "snippet": {
+                    "text": "#include <sys/prctl.h>"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "f996b4729ee6a5cfb5472c206a05d29e6a7b98a7"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "high",
+            "linuxGuarded": true,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX007",
+          "ruleIndex": 1,
+          "level": "note",
+          "message": {
+            "text": "prctl(): PR_SET_THP_DISABLE. QNX 8.0: PR_SET_NAME / PR_GET_NAME map to pthread_setname_np(0, name) / pthread_getname_np() (documented; the length limit is _NTO_THREAD_NAME_MAX instead of Linux's 16 bytes). Other options (PR_SET_PDEATHSIG, PR_SET_DUMPABLE, PR_SET_NO_NEW_PRIVS, PR_SET_SECCOMP ...) have no documented single-call equivalent: verify, or use procmgr_ability() for privilege control. [verify on your SDP] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/server.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 6321,
+                  "snippet": {
+                    "text": "#ifdef PR_SET_THP_DISABLE"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "2483aa94c01ec5268bf3320255052ac49a1d7879"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "high",
+            "linuxGuarded": true,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX007",
+          "ruleIndex": 1,
+          "level": "note",
+          "message": {
+            "text": "prctl(): prctl, PR_SET_THP_DISABLE. QNX 8.0: PR_SET_NAME / PR_GET_NAME map to pthread_setname_np(0, name) / pthread_getname_np() (documented; the length limit is _NTO_THREAD_NAME_MAX instead of Linux's 16 bytes). Other options (PR_SET_PDEATHSIG, PR_SET_DUMPABLE, PR_SET_NO_NEW_PRIVS, PR_SET_SECCOMP ...) have no documented single-call equivalent: verify, or use procmgr_ability() for privilege control. [verify on your SDP] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/server.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 6322,
+                  "snippet": {
+                    "text": "ret = prctl(PR_SET_THP_DISABLE, 1, 0, 0, 0);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "9f665a181e049313816ca0ed03e4a9597143990a"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "high",
+            "linuxGuarded": true,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 2,
+          "level": "note",
+          "message": {
+            "text": "CPU affinity: cpu_set_t. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setcpuaffinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 77,
+                  "snippet": {
+                    "text": "cpu_set_t cpuset;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "019141708917b852fd1851c0a2739de1dbcbc7b6"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "high",
+            "linuxGuarded": true,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 2,
+          "level": "note",
+          "message": {
+            "text": "CPU affinity: sched_setaffinity. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setcpuaffinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 141,
+                  "snippet": {
+                    "text": "sched_setaffinity(0, sizeof(cpuset), &cpuset);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "4613ef43cee40e0cfffcdd7d37683e5f7671e2ff"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "high",
+            "linuxGuarded": true,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX020",
+          "ruleIndex": 5,
+          "level": "note",
+          "message": {
+            "text": "glibc / GNU extensions: program_invocation_name. QNX 8.0: Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify). [verify on your SDP] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setproctitle.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 236,
+                  "snippet": {
+                    "text": "if (!(tmp = strdup(program_invocation_name)))"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "cc6a6c1715e6b7e13d3f9cbbfc18d2237b71d048"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "medium",
+            "linuxGuarded": true,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX020",
+          "ruleIndex": 5,
+          "level": "note",
+          "message": {
+            "text": "glibc / GNU extensions: program_invocation_name. QNX 8.0: Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify). [verify on your SDP] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setproctitle.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 239,
+                  "snippet": {
+                    "text": "program_invocation_name = tmp;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "774d817f4b867a7a0a8bea549765dea82b3de844"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "medium",
+            "linuxGuarded": true,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX020",
+          "ruleIndex": 5,
+          "level": "note",
+          "message": {
+            "text": "glibc / GNU extensions: program_invocation_short_name. QNX 8.0: Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify). [verify on your SDP] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setproctitle.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 241,
+                  "snippet": {
+                    "text": "if (!(tmp = strdup(program_invocation_short_name)))"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "9cfe3c96e825694fb77b2783611901d9282aa97e"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "medium",
+            "linuxGuarded": true,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX020",
+          "ruleIndex": 5,
+          "level": "note",
+          "message": {
+            "text": "glibc / GNU extensions: program_invocation_short_name. QNX 8.0: Provide a small portable replacement in your own code (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few lines each), or guard the use. Do not assume the glibc behaviour (verify). [verify on your SDP] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/setproctitle.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 244,
+                  "snippet": {
+                    "text": "program_invocation_short_name = tmp;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "c90efdbb10ef10a386af1ba77403e3b08afa5925"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "medium",
+            "linuxGuarded": true,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX027",
+          "ruleIndex": 8,
+          "level": "note",
+          "message": {
+            "text": "Linux-only mmap/madvise options: madvise, MADV_DONTNEED. QNX 8.0: Use MAP_ANON, drop prefault/huge-page flags (or find the QNX equivalent in the mmap() page), and replace mremap() with mmap + copy. madvise() has no C Library Reference page: use posix_madvise() (documented) (verify). [verify on your SDP] (already inside a Linux-only #if branch; make sure a QNX branch exists)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/zmalloc.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 438,
+                  "snippet": {
+                    "text": "madvise((void *)aligned_ptr, real_size&~page_size_mask, MADV_DONTNEED);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "7381b49cc0ea93a98e580619c7812cd2ac7c1e48"
+          },
+          "properties": {
+            "severity": "info",
+            "baseSeverity": "medium",
+            "linuxGuarded": true,
+            "confidence": "verify"
+          }
+        }
+      ]
+    }
+  ]
+}

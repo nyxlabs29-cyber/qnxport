@@ -1,0 +1,2181 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "qnxport",
+          "version": "0.1.0",
+          "semanticVersion": "0.1.0",
+          "informationUri": "https://github.com/nyxlabs29-cyber/qnxport",
+          "rules": [
+            {
+              "id": "QNX008",
+              "name": "CpuAffinity",
+              "shortDescription": {
+                "text": "CPU affinity"
+              },
+              "fullDescription": {
+                "text": "sched_setaffinity / pthread_setaffinity_np and the CPU_* macros have no page in the QNX 8.0 C Library Reference."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. (confidence: documented)",
+                "markdown": "**QNX 8.0 strategy:** For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify.\n\n**Why:** sched_setaffinity / pthread_setaffinity_np and the CPU_* macros have no page in the QNX 8.0 C Library Reference.\n\n- [ThreadCtl()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/threadctl.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/threadctl.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "process",
+                  "confidence-documented"
+                ],
+                "qnxport-confidence": "documented"
+              }
+            },
+            {
+              "id": "QNX013",
+              "name": "ProcPathsLinuxLayout",
+              "shortDescription": {
+                "text": "/proc paths (Linux layout)"
+              },
+              "fullDescription": {
+                "text": "QNX has a /proc, but it is a process-manager namespace with its own layout, not Linux text files such as /proc/cpuinfo, /proc/meminfo, /proc/stat or /proc/<pid>/stat."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target).\n\n**Why:** QNX has a /proc, but it is a process-manager namespace with its own layout, not Linux text files such as /proc/cpuinfo, /proc/meminfo, /proc/stat or /proc/<pid>/stat.\n\n- [Controlling processes via the /proc filesystem (Programmer's Guide)](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.prog/topic/process_proc_filesystem.html)\n- [devctl()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.prog/topic/process_proc_filesystem.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "system",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX014",
+              "name": "SysSysfsPaths",
+              "shortDescription": {
+                "text": "/sys (sysfs) paths"
+              },
+              "fullDescription": {
+                "text": "QNX does not provide Linux sysfs. Paths such as /sys/class/gpio, /sys/class/net or /sys/devices have no QNX counterpart."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation. (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation.\n\n**Why:** QNX does not provide Linux sysfs. Paths such as /sys/class/gpio, /sys/class/net or /sys/devices have no QNX counterpart.\n\n- [devctl()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "system",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX017",
+              "name": "LinuxKernelUapiHeaders",
+              "shortDescription": {
+                "text": "linux/ kernel UAPI headers"
+              },
+              "fullDescription": {
+                "text": "#include <linux/...> headers (input, videodev2, i2c-dev, spidev, gpio, fb, netlink, ...) describe Linux kernel interfaces that QNX does not provide."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Identify the device or service behind the header and use the matching QNX interface (resource manager devctl()/ioctl() commands, Screen, QNX Sound Architecture, hw/ headers of the BSP). The right header is device specific: verify in the BSP/SDK docs. (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Identify the device or service behind the header and use the matching QNX interface (resource manager devctl()/ioctl() commands, Screen, QNX Sound Architecture, hw/ headers of the BSP). The right header is device specific: verify in the BSP/SDK docs.\n\n**Why:** #include <linux/...> headers (input, videodev2, i2c-dev, spidev, gpio, fb, netlink, ...) describe Linux kernel interfaces that QNX does not provide.\n\n- [devctl()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html)\n- [ioctl(), vioctl()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/ioctl.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "headers",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX019",
+              "name": "LinuxGlibcPreprocessorGuards",
+              "shortDescription": {
+                "text": "Linux/glibc preprocessor guards"
+              },
+              "fullDescription": {
+                "text": "Code under #ifdef __linux__ / __GLIBC__ is not compiled by qcc for QNX, so such branches silently disappear and some #else branches may pick a BSD or generic path that was never tested on QNX."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify).\n\n**Why:** Code under #ifdef __linux__ / __GLIBC__ is not compiled by qcc for QNX, so such branches silently disappear and some #else branches may pick a BSD or generic path that was never tested on QNX.\n\n- [qcc / q++ (Utilities Reference)](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "portability",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX022",
+              "name": "RawSyscallSys_*Numbers",
+              "shortDescription": {
+                "text": "raw syscall() / SYS_* numbers"
+              },
+              "fullDescription": {
+                "text": "Linux system-call numbers do not exist on QNX; syscall() has no page in the QNX 8.0 C Library Reference."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>). Others: find the libc function, or QNX kernel call, that provides the feature. (confidence: documented)",
+                "markdown": "**QNX 8.0 strategy:** Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>). Others: find the libc function, or QNX kernel call, that provides the feature.\n\n**Why:** Linux system-call numbers do not exist on QNX; syscall() has no page in the QNX 8.0 C Library Reference.\n\n- [gettid()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/g/gettid.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/g/gettid.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "process",
+                  "confidence-documented"
+                ],
+                "qnxport-confidence": "documented"
+              }
+            },
+            {
+              "id": "QNX028",
+              "name": "LinuxOnlyOpenFlags",
+              "shortDescription": {
+                "text": "Linux-only open() flags"
+              },
+              "fullDescription": {
+                "text": "O_TMPFILE, O_PATH, O_NOATIME and O_DIRECT are Linux flags; support on QNX filesystems is not documented in the public C library pages searched."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Use a mkstemp()+unlink() sequence for O_TMPFILE, drop O_NOATIME, and decide per filesystem about O_DIRECT. Verify each flag is defined in your SDP <fcntl.h>. (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Use a mkstemp()+unlink() sequence for O_TMPFILE, drop O_NOATIME, and decide per filesystem about O_DIRECT. Verify each flag is defined in your SDP <fcntl.h>.\n\n**Why:** O_TMPFILE, O_PATH, O_NOATIME and O_DIRECT are Linux flags; support on QNX filesystems is not documented in the public C library pages searched.\n\n- [mkostemp()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mkostemp.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mkostemp.html",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "io",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX029",
+              "name": "LinuxCapabilities",
+              "shortDescription": {
+                "text": "Linux capabilities"
+              },
+              "fullDescription": {
+                "text": "<sys/capability.h> and cap_*() (libcap) are Linux capabilities. QNX 8.0 uses process abilities."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. (confidence: documented)",
+                "markdown": "**QNX 8.0 strategy:** Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need.\n\n**Why:** <sys/capability.h> and cap_*() (libcap) are Linux capabilities. QNX 8.0 uses process abilities.\n\n- [procmgr_ability()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability.html)\n- [procmgr_ability_create()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability_create.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "security",
+                  "confidence-documented"
+                ],
+                "qnxport-confidence": "documented"
+              }
+            },
+            {
+              "id": "QNX034",
+              "name": "LinuxSocketOptionsAndNetlink",
+              "shortDescription": {
+                "text": "Linux socket options and netlink"
+              },
+              "fullDescription": {
+                "text": "TCP_CORK, TCP_QUICKACK, TCP_USER_TIMEOUT, SO_BINDTODEVICE, MSG_MORE, AF_PACKET and AF_NETLINK are Linux networking features; the QNX networking stack is documented separately from the C Library Reference."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Check each option in the QNX 8.0 networking documentation / your SDP <netinet/tcp.h>; BSD-style alternatives (for example TCP_NOPUSH for corking, routing sockets instead of netlink) are likely but must be verified. (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Check each option in the QNX 8.0 networking documentation / your SDP <netinet/tcp.h>; BSD-style alternatives (for example TCP_NOPUSH for corking, routing sockets instead of netlink) are likely but must be verified.\n\n**Why:** TCP_CORK, TCP_QUICKACK, TCP_USER_TIMEOUT, SO_BINDTODEVICE, MSG_MORE, AF_PACKET and AF_NETLINK are Linux networking features; the QNX networking stack is documented separately from the C Library Reference.\n\n"
+              },
+              "helpUri": "https://github.com/nyxlabs29-cyber/qnxport",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "network",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX035",
+              "name": "SystemdUdevIntegration",
+              "shortDescription": {
+                "text": "systemd / udev integration"
+              },
+              "fullDescription": {
+                "text": "<systemd/...> and <libudev.h> are Linux service/device-manager libraries."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Replace service notification and device hotplug with the QNX equivalents for your system: process start-up via your boot scripts or system launch manager, procmgr_daemon() for daemonizing (documented) and QNX device managers. Make the dependency optional (verify design). (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Replace service notification and device hotplug with the QNX equivalents for your system: process start-up via your boot scripts or system launch manager, procmgr_daemon() for daemonizing (documented) and QNX device managers. Make the dependency optional (verify design).\n\n**Why:** <systemd/...> and <libudev.h> are Linux service/device-manager libraries.\n\n- [procmgr_daemon()](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_daemon.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_daemon.html",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "system",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            },
+            {
+              "id": "QNX104",
+              "name": "OsDetectionThatOnlyKnowsLinux",
+              "shortDescription": {
+                "text": "OS detection that only knows Linux"
+              },
+              "fullDescription": {
+                "text": "uname -s / CMAKE_SYSTEM_NAME / configure host checks branch on Linux; on a QNX cross build none of the Linux branches apply, and there may be no branch for QNX at all."
+              },
+              "help": {
+                "text": "QNX 8.0 strategy: Add a QNX branch (CMake with a QNX toolchain reports CMAKE_SYSTEM_NAME = QNX; autoconf host triplets contain 'nto-qnx'): verify with your toolchain and your config.sub version. (confidence: verify)",
+                "markdown": "**QNX 8.0 strategy:** Add a QNX branch (CMake with a QNX toolchain reports CMAKE_SYSTEM_NAME = QNX; autoconf host triplets contain 'nto-qnx'): verify with your toolchain and your config.sub version.\n\n**Why:** uname -s / CMAKE_SYSTEM_NAME / configure host checks branch on Linux; on a QNX cross build none of the Linux branches apply, and there may be no branch for QNX at all.\n\n- [qcc / q++ (Utilities Reference)](https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html)"
+              },
+              "helpUri": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "qnx",
+                  "qnx-8.0",
+                  "porting",
+                  "build",
+                  "confidence-verify"
+                ],
+                "qnxport-confidence": "verify"
+              }
+            }
+          ]
+        }
+      },
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "uri": "file:///"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "CPU affinity: cpu_set_t. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Affinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 91,
+                  "snippet": {
+                    "text": "cpu_set_t cpuset;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "384d3616184ade049ca38529745a7bc5807bcf72"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "CPU affinity: sched_getaffinity, cpu_set_t. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Affinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 92,
+                  "snippet": {
+                    "text": "bool ok = (sched_getaffinity(Process_getPid(p), sizeof(cpu_set_t), &cpuset) == 0);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "102f1dda9d33ae51309296122d11a8c156653ffa"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "CPU affinity: CPU_ISSET. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Affinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 98,
+                  "snippet": {
+                    "text": "if (CPU_ISSET(i, &cpuset)) {"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "2d200bea118b16f1e95f7a5fd42a9165de6489ec"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "CPU affinity: cpu_set_t. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Affinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 107,
+                  "snippet": {
+                    "text": "cpu_set_t cpuset;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "384d3616184ade049ca38529745a7bc5807bcf72"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "CPU affinity: CPU_ZERO. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Affinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 108,
+                  "snippet": {
+                    "text": "CPU_ZERO(&cpuset);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "f0b42f0aaf754ac454a32081133f3b5d7b425fd4"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "CPU affinity: CPU_SET. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Affinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 110,
+                  "snippet": {
+                    "text": "CPU_SET(this->cpus[i], &cpuset);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "c99fbdde9e9647d71425a2b6be7949f3bb284637"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX008",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "CPU affinity: sched_setaffinity. QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Affinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 112,
+                  "snippet": {
+                    "text": "bool ok = (sched_setaffinity(Process_getPid(p), sizeof(unsigned long), &cpuset) == 0);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "907340b2f425d75118feb16e35a7c925ab0ec1d8"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX013",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": {
+            "text": "/proc paths (Linux layout): \"/proc/self/fd/%d\". QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Compat.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 136,
+                  "snippet": {
+                    "text": "xSnprintf(fdPath, sizeof(fdPath), \"/proc/self/fd/%d\", dirfd);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "d45ff1a353c3970776ffa4ba99f4152905978352"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX014",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "/sys (sysfs) paths: \"/sys/devices/system/cpu\". QNX 8.0: Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxMachine.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 61,
+                  "snippet": {
+                    "text": "DIR* dir = opendir(\"/sys/devices/system/cpu\");"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "25ad0f441109897a954e0d21a1872c978b8d6e44"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX014",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "/sys (sysfs) paths: \"/sys/devices/system/cpu/%s\". QNX 8.0: Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxMachine.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 86,
+                  "snippet": {
+                    "text": "xSnprintf(cpuDirFd, sizeof(cpuDirFd), \"/sys/devices/system/cpu/%s\", entry->d_name);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "3fe2042862c474b26c5cd85f8434c2709bcac17c"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX014",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "/sys (sysfs) paths: \"/sys/kernel/mm/hugepages\". QNX 8.0: Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxMachine.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 227,
+                  "snippet": {
+                    "text": "DIR* dir = opendir(\"/sys/kernel/mm/hugepages\");"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "f39bbad8f3db936ff078bc0be4fea012ec6cc95a"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX014",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "/sys (sysfs) paths: \"/sys/kernel/mm/hugepages/%s/nr_hugepages\". QNX 8.0: Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxMachine.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 251,
+                  "snippet": {
+                    "text": "xSnprintf(hugePagePath, sizeof(hugePagePath), \"/sys/kernel/mm/hugepages/%s/nr_hugepages\", name);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5650ba724a81164361a8eacf744211d3f10d9dbc"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX014",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "/sys (sysfs) paths: \"/sys/kernel/mm/hugepages/%s/free_hugepages\". QNX 8.0: Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxMachine.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 260,
+                  "snippet": {
+                    "text": "xSnprintf(hugePagePath, sizeof(hugePagePath), \"/sys/kernel/mm/hugepages/%s/free_hugepages\", name);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "7c066f3cafb750ea1f064adf29f1424784ab0416"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX014",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "/sys (sysfs) paths: \"/sys/block/zram%u/mm_stat\". QNX 8.0: Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxMachine.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 287,
+                  "snippet": {
+                    "text": "xSnprintf(mm_stat, sizeof(mm_stat), \"/sys/block/zram%u/mm_stat\", i);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "551aea34a0df6e767e5457a6b282eb1a6ee5e97d"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX014",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "/sys (sysfs) paths: \"/sys/block/zram%u/disksize\". QNX 8.0: Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxMachine.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 288,
+                  "snippet": {
+                    "text": "xSnprintf(disksize, sizeof(disksize), \"/sys/block/zram%u/disksize\", i);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "b4cfb6bcc0fb09f7fcbd8bb099eff757bf953090"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX014",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "/sys (sysfs) paths: \"/sys/devices/system/cpu/cpu%u/cpufreq/scaling_cur_freq\". QNX 8.0: Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxMachine.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 525,
+                  "snippet": {
+                    "text": "xSnprintf(pathBuffer, sizeof(pathBuffer), \"/sys/devices/system/cpu/cpu%u/cpufreq/scaling_cur_freq\", i);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "d1d41cbe52482eee60804430fba3cbccdb1bc834"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX022",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "raw syscall() / SYS_* numbers: SYS_ioprio_get, __NR_ioprio_get. QNX 8.0: Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>). Others: find the libc function, or QNX kernel call, that provides the feature. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxProcess.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 151,
+                  "snippet": {
+                    "text": "#define SYS_ioprio_get __NR_ioprio_get"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "3439d16b30c99d0cd379c8dbe30c990a6dd37497"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX022",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "raw syscall() / SYS_* numbers: SYS_ioprio_set, __NR_ioprio_set. QNX 8.0: Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>). Others: find the libc function, or QNX kernel call, that provides the feature. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxProcess.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 152,
+                  "snippet": {
+                    "text": "#define SYS_ioprio_set __NR_ioprio_set"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "427ae2f759abfc57579e80d47591fb75440edf28"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX022",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "raw syscall() / SYS_* numbers: SYS_ioprio_get. QNX 8.0: Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>). Others: find the libc function, or QNX kernel call, that provides the feature. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxProcess.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 158,
+                  "snippet": {
+                    "text": "#ifdef SYS_ioprio_get"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "d2b1c12916b735822d3b76c9eee7fec23e156417"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX022",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "raw syscall() / SYS_* numbers: syscall, SYS_ioprio_get. QNX 8.0: Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>). Others: find the libc function, or QNX kernel call, that provides the feature. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxProcess.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 159,
+                  "snippet": {
+                    "text": "ioprio = syscall(SYS_ioprio_get, IOPRIO_WHO_PROCESS, Process_getPid(p));"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "d09c1269ef53c54248518f6ff417d255adae068b"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX022",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "raw syscall() / SYS_* numbers: SYS_ioprio_set. QNX 8.0: Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>). Others: find the libc function, or QNX kernel call, that provides the feature. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxProcess.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 168,
+                  "snippet": {
+                    "text": "#ifdef SYS_ioprio_set"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "ab68e220e6f9ba1a077fed96c39e3a05b96751f9"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX022",
+          "ruleIndex": 5,
+          "level": "error",
+          "message": {
+            "text": "raw syscall() / SYS_* numbers: syscall, SYS_ioprio_set. QNX 8.0: Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>). Others: find the libc function, or QNX kernel call, that provides the feature. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxProcess.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 169,
+                  "snippet": {
+                    "text": "syscall(SYS_ioprio_set, IOPRIO_WHO_PROCESS, Process_getPid(p), ioprio.i);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "ab30693385495b3284e47fbe7bf52d6cb479f5e2"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX017",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "linux/ kernel UAPI headers: #include <linux/netlink.h>. QNX 8.0: Identify the device or service behind the header and use the matching QNX interface (resource manager devctl()/ioctl() commands, Screen, QNX Sound Architecture, hw/ headers of the BSP). The right header is device specific: verify in the BSP/SDK docs. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxProcessTable.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 27,
+                  "snippet": {
+                    "text": "#include <linux/netlink.h>"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "6be069ea302cee98349e2c64cb779bf9870c52ba"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX017",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "linux/ kernel UAPI headers: #include <linux/taskstats.h>. QNX 8.0: Identify the device or service behind the header and use the matching QNX interface (resource manager devctl()/ioctl() commands, Screen, QNX Sound Architecture, hw/ headers of the BSP). The right header is device specific: verify in the BSP/SDK docs. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxProcessTable.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 28,
+                  "snippet": {
+                    "text": "#include <linux/taskstats.h>"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "725b7eeb1332c182edf6117769218d02c2651544"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: #include <sys/capability.h>. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 68,
+                  "snippet": {
+                    "text": "#include <sys/capability.h>"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "8d4e4b144d57148d3a5e4a993545e0040dd5d50d"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: CAP_SYS_NICE. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 969,
+                  "snippet": {
+                    "text": "CAP_SYS_NICE,          /* lower process nice value / change nice value for arbitrary processes */"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "211abb8163f35a349f46434ff32b55a5ac630ed8"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: CAP_NET_ADMIN. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 972,
+                  "snippet": {
+                    "text": "CAP_NET_ADMIN,         /* communicate over netlink socket for delay accounting */"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "04fc8bdb7ff9c277e71d4bf9157d3fb1a995ce03"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_init. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 978,
+                  "snippet": {
+                    "text": "cap_t caps = cap_init();"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "1b8e416acc84035b914b6b358f88f10c7a7c0781"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 986,
+                  "snippet": {
+                    "text": "cap_free(caps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "8572e89018971ed634dcb97443fda9f047a3f902"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_get_proc. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 990,
+                  "snippet": {
+                    "text": "cap_t currCaps = cap_get_proc();"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "0779e713fca565dd4fba3be2cab20752cdb75554"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 993,
+                  "snippet": {
+                    "text": "cap_free(caps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "8572e89018971ed634dcb97443fda9f047a3f902"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1004,
+                  "snippet": {
+                    "text": "cap_free(currCaps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "a2a75e6fb5ad83424fbfa82b11034d4bf8eca903"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1005,
+                  "snippet": {
+                    "text": "cap_free(caps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "8572e89018971ed634dcb97443fda9f047a3f902"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_set_flag. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1012,
+                  "snippet": {
+                    "text": "if (cap_set_flag(caps, CAP_PERMITTED, 1, &keepcaps[i], CAP_SET) < 0) {"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "9e177643a89cae0cf021dea061816f09a8b7e1cb"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1014,
+                  "snippet": {
+                    "text": "cap_free(currCaps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "a2a75e6fb5ad83424fbfa82b11034d4bf8eca903"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1015,
+                  "snippet": {
+                    "text": "cap_free(caps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "8572e89018971ed634dcb97443fda9f047a3f902"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_set_flag. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1019,
+                  "snippet": {
+                    "text": "if (cap_set_flag(caps, CAP_EFFECTIVE, 1, &keepcaps[i], CAP_SET) < 0) {"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "f8561e3fa1ad453bf200ab8f274fccae0cbce499"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1021,
+                  "snippet": {
+                    "text": "cap_free(currCaps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "a2a75e6fb5ad83424fbfa82b11034d4bf8eca903"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1022,
+                  "snippet": {
+                    "text": "cap_free(caps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "8572e89018971ed634dcb97443fda9f047a3f902"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_set_proc. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1027,
+                  "snippet": {
+                    "text": "if (cap_set_proc(caps) < 0) {"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "c843a5b3b34e367416b6a1f11892cbedb096ce4d"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1029,
+                  "snippet": {
+                    "text": "cap_free(currCaps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "a2a75e6fb5ad83424fbfa82b11034d4bf8eca903"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1030,
+                  "snippet": {
+                    "text": "cap_free(caps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "8572e89018971ed634dcb97443fda9f047a3f902"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1034,
+                  "snippet": {
+                    "text": "cap_free(currCaps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "a2a75e6fb5ad83424fbfa82b11034d4bf8eca903"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX029",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Linux capabilities: cap_free. QNX 8.0: Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need. [documented]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1035,
+                  "snippet": {
+                    "text": "cap_free(caps);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "8572e89018971ed634dcb97443fda9f047a3f902"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "documented"
+          }
+        },
+        {
+          "ruleId": "QNX035",
+          "ruleIndex": 9,
+          "level": "error",
+          "message": {
+            "text": "systemd / udev integration: #include <systemd/sd-bus.h>. QNX 8.0: Replace service notification and device hotplug with the QNX equivalents for your system: process start-up via your boot scripts or system launch manager, procmgr_daemon() for daemonizing (documented) and QNX device managers. Make the dependency optional (verify design). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/SystemdMeter.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 29,
+                  "snippet": {
+                    "text": "#include <systemd/sd-bus.h>"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "b6907300729ce6a7793e78f4582ceac0d6dcbdfe"
+          },
+          "properties": {
+            "severity": "high",
+            "baseSeverity": "high",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX019",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Linux/glibc preprocessor guards: __linux__. QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify). [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "Affinity.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 22,
+                  "snippet": {
+                    "text": "#ifdef __linux__"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "1eec63631deff3522afd7ebd1a4f4193b6f81d42"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX104",
+          "ruleIndex": 10,
+          "level": "warning",
+          "message": {
+            "text": "OS detection that only knows Linux: AC_CANONICAL_HOST. QNX 8.0: Add a QNX branch (CMake with a QNX toolchain reports CMAKE_SYSTEM_NAME = QNX; autoconf host triplets contain 'nto-qnx'): verify with your toolchain and your config.sub version. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "configure.ac",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 15,
+                  "snippet": {
+                    "text": "AC_CANONICAL_HOST"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "5718f72fa0c8d8dd8acd30c2beae21b6054262d9"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX104",
+          "ruleIndex": 10,
+          "level": "warning",
+          "message": {
+            "text": "OS detection that only knows Linux: host_os. QNX 8.0: Add a QNX branch (CMake with a QNX toolchain reports CMAKE_SYSTEM_NAME = QNX; autoconf host triplets contain 'nto-qnx'): verify with your toolchain and your config.sub version. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "configure.ac",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 25,
+                  "snippet": {
+                    "text": "case \"$host_os\" in"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "59aa1181eb98f744a618182362cd301cb6947ea1"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX028",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Linux-only open() flags: O_PATH. QNX 8.0: Use a mkstemp()+unlink() sequence for O_TMPFILE, drop O_NOATIME, and decide per filesystem about O_DIRECT. Verify each flag is defined in your SDP <fcntl.h>. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxMachine.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 41,
+                  "snippet": {
+                    "text": "#ifndef O_PATH"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "c1b53abfde2292037140fbce220973359705f9f7"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX028",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Linux-only open() flags: O_PATH. QNX 8.0: Use a mkstemp()+unlink() sequence for O_TMPFILE, drop O_NOATIME, and decide per filesystem about O_DIRECT. Verify each flag is defined in your SDP <fcntl.h>. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxMachine.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 42,
+                  "snippet": {
+                    "text": "#define O_PATH         010000000 // declare for ancient glibc versions"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "e0f7fe6c08ef2a4254795c2ae7932fbe54413010"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX028",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Linux-only open() flags: O_PATH. QNX 8.0: Use a mkstemp()+unlink() sequence for O_TMPFILE, drop O_NOATIME, and decide per filesystem about O_DIRECT. Verify each flag is defined in your SDP <fcntl.h>. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxMachine.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 81,
+                  "snippet": {
+                    "text": "int cpuDirFd = openat(dirfd(dir), entry->d_name, O_DIRECTORY | O_PATH | O_NOFOLLOW);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "6924207bae56b28a8330d894ccfe4eb6b8303516"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX034",
+          "ruleIndex": 8,
+          "level": "warning",
+          "message": {
+            "text": "Linux socket options and netlink: #include <linux/netlink.h>. QNX 8.0: Check each option in the QNX 8.0 networking documentation / your SDP <netinet/tcp.h>; BSD-style alternatives (for example TCP_NOPUSH for corking, routing sockets instead of netlink) are likely but must be verified. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxProcessTable.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 27,
+                  "snippet": {
+                    "text": "#include <linux/netlink.h>"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "abee911e9463842746067d6c32d4f99cabb87a31"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX034",
+          "ruleIndex": 8,
+          "level": "warning",
+          "message": {
+            "text": "Linux socket options and netlink: NETLINK_GENERIC. QNX 8.0: Check each option in the QNX 8.0 networking documentation / your SDP <netinet/tcp.h>; BSD-style alternatives (for example TCP_NOPUSH for corking, routing sockets instead of netlink) are likely but must be verified. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/LinuxProcessTable.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 195,
+                  "snippet": {
+                    "text": "if (nl_connect(this->netlink_socket, NETLINK_GENERIC) < 0) {"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "95eea4f28ed16088b23e9114bb26ecb2ca83397b"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX028",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Linux-only open() flags: O_PATH. QNX 8.0: Use a mkstemp()+unlink() sequence for O_TMPFILE, drop O_NOATIME, and decide per filesystem about O_DIRECT. Verify each flag is defined in your SDP <fcntl.h>. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 75,
+                  "snippet": {
+                    "text": "#ifndef O_PATH"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "7a38713898e5028d921c7052e48dd62f59d1cef4"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX028",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Linux-only open() flags: O_PATH. QNX 8.0: Use a mkstemp()+unlink() sequence for O_TMPFILE, drop O_NOATIME, and decide per filesystem about O_DIRECT. Verify each flag is defined in your SDP <fcntl.h>. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 76,
+                  "snippet": {
+                    "text": "#define O_PATH         010000000 // declare for ancient glibc versions"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "9edc63a05c571f920500aaa270b7bf61916f2138"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        },
+        {
+          "ruleId": "QNX028",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Linux-only open() flags: O_PATH. QNX 8.0: Use a mkstemp()+unlink() sequence for O_TMPFILE, drop O_NOATIME, and decide per filesystem about O_DIRECT. Verify each flag is defined in your SDP <fcntl.h>. [verify on your SDP]"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "linux/Platform.c",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 773,
+                  "snippet": {
+                    "text": "int entryFd = openat(dirfd(dir), entryName, O_DIRECTORY | O_PATH);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "qnxportFinding/v1": "2f6cf5d66223dc4ec7b7a0c61e0322a9c5839e99"
+          },
+          "properties": {
+            "severity": "medium",
+            "baseSeverity": "medium",
+            "linuxGuarded": false,
+            "confidence": "verify"
+          }
+        }
+      ]
+    }
+  ]
+}

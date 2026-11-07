@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.10)
+project(demo C)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_definitions(-D_GNU_SOURCE)
+endif()
+add_executable(demo epoll_loop.c)
+target_link_libraries(demo rt dl pthread)
+# target_link_libraries(commented rt)

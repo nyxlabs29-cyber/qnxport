@@ -1,0 +1,14 @@
+# host: Linux 6.6.87.2-microsoft-standard-WSL2 / cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+# command: make -f Makefile.host clean test
+mkdir -p build/host
+cc -std=gnu99 -Wall -Wextra -O2 -g -o build/host/evdemo-epoll common/evcore.c common/main.c linux/loop_epoll.c -lpthread -lrt
+cc -std=gnu99 -Wall -Wextra -O2 -g -o build/host/evdemo-poll common/evcore.c common/main.c portable/loop_poll.c -lpthread -lrt
+cc -std=gnu99 -Wall -Wextra -O2 -g -Ihostcheck/include -o build/host/evdemo-qnx-shim common/evcore.c common/main.c qnx/loop_qnx.c hostcheck/neutrino_shim.c -lpthread -lrt
+cc -std=gnu99 -Wall -Wextra -O2 -g -o build/host/test_evcore test/test_evcore.c common/evcore.c
+build/host/test_evcore
+test_evcore: ok
+sh test/run_scenarios.sh build/host
+PASS evdemo-epoll (ticks seen: 5)
+PASS evdemo-poll (ticks seen: 5)
+PASS evdemo-qnx-shim (ticks seen: 5)
+PASS evdemo-qnx-shim (stdin EOF ends loop)

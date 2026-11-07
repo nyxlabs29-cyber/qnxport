@@ -1,0 +1,236 @@
+qnxport 0.1.0 - QNX 8.0 porting scan
+scanned  libuv-v1.48.0: 13 source files, 9,757 lines, 1 build files
+note     1 file(s) already mention __QNX__/__QNXNTO__ (existing QNX support?): src/unix/fs.c
+findings 141 high | 58 medium | 12 low | 18 info (info = already inside a Linux-only #if branch, or advice)  [21 rules, 229 findings]
+
+SEV     RULE    COUNT  FILES  WHAT
+HIGH    QNX022  45     2      raw syscall() / SYS_* numbers
+HIGH    QNX001  38     1      epoll event loop
+HIGH    QNX012  15     3      sysinfo / load / CPU count helpers  [verify]
+HIGH    QNX008  14     2      CPU affinity
+HIGH    QNX013  11     3      /proc paths (Linux layout)  [verify]
+HIGH    QNX014  10     1      /sys (sysfs) paths  [verify]
+HIGH    QNX030  9      1      containers, namespaces and seccomp  [verify]
+HIGH    QNX009  5      1      zero-copy transfer (sendfile/splice/tee)  [verify]
+HIGH    QNX007  3      1      prctl()  [verify]
+MEDIUM  QNX019  31     5      Linux/glibc preprocessor guards  [verify]
+MEDIUM  QNX023  7      1      accept4 / dup3 / SOCK_* creation flags  [verify]
+MEDIUM  QNX025  7      1      statfs / sys/vfs.h
+MEDIUM  QNX005  6      1      inotify filesystem watches
+MEDIUM  QNX018  4      1      Linux-specific ioctl requests  [verify]
+MEDIUM  QNX026  3      1      Linux-only clock IDs  [verify]
+MEDIUM  QNX034  3      2      Linux socket options and netlink  [verify]
+MEDIUM  QNX027  2      1      Linux-only mmap/madvise options  [verify]
+MEDIUM  QNX104  1      1      OS detection that only knows Linux  [verify]
+MEDIUM  QNX151  1      1      inotify needs -lfsnotify
+LOW     QNX105  12     1      sanitizers and Linux-only linker flags  [verify]
+INFO    QNX020  2      1      glibc / GNU extensions  [verify]
+
+QNX022  raw syscall() / SYS_* numbers  (45 findings)  [documented in QNX 8.0 docs]
+  src/unix/linux.c:51  #include <sys/syscall.h>
+  src/unix/linux.c:59  __NR_io_uring_setup
+  src/unix/linux.c:60  __NR_io_uring_setup
+  ... and 42 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>).
+    Others: find the libc function, or QNX kernel call, that provides the feature.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/g/gettid.html
+
+QNX001  epoll event loop  (38 findings)  [documented in QNX 8.0 docs]
+  src/unix/linux.c:44  #include <sys/epoll.h>
+  src/unix/linux.c:255  EPOLL_CTL_ADD
+  src/unix/linux.c:256  EPOLL_CTL_DEL
+  ... and 35 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Use poll()/ppoll()/select() when you only wait on file descriptors. Use ionotify() with a
+    SIGEV_PULSE event (registered with MsgRegisterEvent()) and receive it with MsgReceivePulse()
+    when the loop must also serve QNX messages, timers or pulses from other threads. ionotify() arms
+    are one-shot: re-arm after every delivery.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/ionotify.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/poll.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/s/select.html
+
+QNX012  sysinfo / load / CPU count helpers  (15 findings)  [VERIFY on your SDP]
+  src/unix/linux.c:52  #include <sys/sysinfo.h>
+  src/unix/linux.c:2051  struct sysinfo
+  src/unix/linux.c:2059  sysinfo
+  ... and 12 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: sysconf() is documented for configurable limits (page size, open files, ...). For CPU
+    count, memory totals and uptime check which sysconf names your SDP defines and the system page
+    (<sys/syspage.h>); there is no documented load-average call (verify).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/s/sysconf.html
+
+QNX008  CPU affinity  (14 findings)  [documented in QNX 8.0 docs]
+  src/unix/core.c:1528  CPU_SETSIZE
+  src/unix/thread.c:203  CPU_ZERO
+  src/unix/thread.c:206  CPU_SET
+  ... and 11 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also
+    _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to
+    bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the
+    calling thread, so code that sets the affinity of ANOTHER thread or process
+    (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own
+    runmask (verify). sched_getcpu() has no documented equivalent: verify.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/threadctl.html
+
+QNX013  /proc paths (Linux layout)  (11 findings)  [VERIFY on your SDP]
+  src/unix/linux.c:324  "/proc/version_signature"
+  src/unix/linux.c:1631  "/proc/self/stat"
+  src/unix/linux.c:1686  "/proc/uptime"
+  ... and 8 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the
+    Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the
+    executable path, QNX provides /proc/self/exefile (verify on your target).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.prog/topic/process_proc_filesystem.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html
+
+QNX014  /sys (sysfs) paths  (10 findings)  [VERIFY on your SDP]
+  src/unix/linux.c:1860  "/sys/devices/system/cpu/cpu%u/cpufreq/scaling_cur_freq"
+  src/unix/linux.c:2132  "/sys/fs/cgroup/memory/%.*s/memory.soft_limit_in_bytes"
+  src/unix/linux.c:2136  "/sys/fs/cgroup/memory/%.*s/memory.limit_in_bytes"
+  ... and 7 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking
+    APIs, ...). Which one depends on your BSP: verify in the BSP documentation.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html
+
+QNX030  containers, namespaces and seccomp  (9 findings)  [VERIFY on your SDP]
+  src/unix/linux.c:2132  "/sys/fs/cgroup/memory/%.*s/memory.soft_limit_in_bytes"
+  src/unix/linux.c:2136  "/sys/fs/cgroup/memory/%.*s/memory.limit_in_bytes"
+  src/unix/linux.c:2147  "/sys/fs/cgroup/memory/memory.soft_limit_in_bytes"
+  ... and 6 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: There is no one-to-one mapping. Isolation on QNX is built from process abilities, the
+    security policy and separate process managers/partitions: design the equivalent and verify
+    against the QNX System Security Guide.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability.html
+
+QNX009  zero-copy transfer (sendfile/splice/tee)  (5 findings)  [VERIFY on your SDP]
+  src/unix/fs.c:53  #include <sys/sendfile.h>
+  src/unix/fs.c:943  sendfile
+  src/unix/fs.c:988  sendfile
+  ... and 2 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Fall back to a read()/write() loop (or mmap() of the source file). Keep the Linux path
+    behind an #ifdef and add a portable copy loop. Check your SDP for any BSD-style sendfile()
+    before relying on it (verify).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/r/read.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mmap.html
+
+QNX007  prctl()  (3 findings)  [VERIFY on your SDP]
+  src/unix/linux.c:48  #include <sys/prctl.h>
+  src/unix/linux.c:2022  PR_SET_NAME
+  src/unix/linux.c:2023  prctl, PR_SET_NAME
+  QNX 8.0: PR_SET_NAME / PR_GET_NAME map to pthread_setname_np(0, name) / pthread_getname_np()
+    (documented; the length limit is _NTO_THREAD_NAME_MAX instead of Linux's 16 bytes). Other
+    options (PR_SET_PDEATHSIG, PR_SET_DUMPABLE, PR_SET_NO_NEW_PRIVS, PR_SET_SECCOMP ...) have no
+    documented single-call equivalent: verify, or use procmgr_ability() for privilege control.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pthread_setname_np.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pthread_getname_np.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability.html
+
+QNX019  Linux/glibc preprocessor guards  (31 findings)  [VERIFY on your SDP]
+  src/unix/core.c:90  __linux__
+  src/unix/core.c:97  __linux__
+  src/unix/core.c:600  __linux__
+  ... and 28 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code
+    path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - <
+    /dev/null' on your SDP (verify).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html
+
+QNX023  accept4 / dup3 / SOCK_* creation flags  (7 findings)  [VERIFY on your SDP]
+  src/unix/core.c:78  accept4
+  src/unix/core.c:81  paccept
+  src/unix/core.c:498  SOCK_NONBLOCK, SOCK_CLOEXEC
+  ... and 4 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Use accept()/dup2()/socket() followed by fcntl(fd, F_SETFD, FD_CLOEXEC) and fcntl(fd,
+    F_SETFL, O_NONBLOCK) (a small wrapper keeps the call sites clean). Note the non-atomic window if
+    you fork concurrently (verify). pipe2() and mkostemp() are documented and can stay.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/pipe.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mkostemp.html
+
+QNX025  statfs / sys/vfs.h  (7 findings)  [documented in QNX 8.0 docs]
+  src/unix/fs.c:82  #include <sys/statfs.h>
+  src/unix/fs.c:590  struct statfs
+  src/unix/fs.c:592  statfs
+  ... and 4 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Use statvfs()/fstatvfs() (documented, <sys/statvfs.h>); map the fields (f_bsize,
+    f_blocks, f_bavail, ...).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/s/statvfs.html
+
+QNX005  inotify filesystem watches  (6 findings)  [documented in QNX 8.0 docs]
+  src/unix/linux.c:45  #include <sys/inotify.h>
+  src/unix/linux.c:2304  inotify_init1
+  src/unix/linux.c:2394  inotify_rm_watch
+  ... and 3 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Keep the inotify code, add -lfsnotify to the link line, make sure fsevmgr runs on the
+    target, and handle inotify_init() failure at start-up. Check event coverage per filesystem on
+    your target (verify). inotify_qnx_ext() enables QNX-specific extensions.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/inotify_init.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/inotify_add_watch.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/f/fsevmgr.html
+
+QNX018  Linux-specific ioctl requests  (4 findings)  [VERIFY on your SDP]
+  src/unix/fs.c:59  FICLONE
+  src/unix/fs.c:1224  FICLONE
+  src/unix/fs.c:1227  FICLONE
+  ... and 1 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: QNX resource managers are usually controlled with devctl() and DCMD_* commands. Map each
+    request to the corresponding resource-manager command for your driver (verify per driver).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/ioctl.html
+
+QNX026  Linux-only clock IDs  (3 findings)  [VERIFY on your SDP]
+  src/unix/linux.c:1607  CLOCK_MONOTONIC_COARSE
+  src/unix/linux.c:1609  CLOCK_MONOTONIC_COARSE
+  src/unix/linux.c:1690  CLOCK_BOOTTIME
+  QNX 8.0: Use CLOCK_MONOTONIC for intervals and CLOCK_REALTIME for wall time. If you need time-
+    since-boot semantics, decide what to do while suspended (verify behaviour on your target).
+    timer_create() additionally accepts CLOCK_SOFTTIME.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/c/clock_gettime.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/timer_create.html
+
+QNX034  Linux socket options and netlink  (3 findings)  [VERIFY on your SDP]
+  src/unix/core.c:715  MSG_CMSG_CLOEXEC
+  src/unix/linux.c:41  #include <net/ethernet.h>
+  src/unix/linux.c:43  #include <netpacket/packet.h>
+  QNX 8.0: Check each option in the QNX 8.0 networking documentation / your SDP <netinet/tcp.h>;
+    BSD-style alternatives (for example TCP_NOPUSH for corking, routing sockets instead of netlink)
+    are likely but must be verified.
+
+QNX027  Linux-only mmap/madvise options  (2 findings)  [VERIFY on your SDP]
+  src/unix/linux.c:560  MAP_POPULATE
+  src/unix/linux.c:567  MAP_POPULATE
+  QNX 8.0: Use MAP_ANON, drop prefault/huge-page flags (or find the QNX equivalent in the mmap()
+    page), and replace mremap() with mmap + copy. madvise() has no C Library Reference page: use
+    posix_madvise() (documented) (verify).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mmap.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/posix_madvise.html
+
+QNX104  OS detection that only knows Linux  (1 finding)  [VERIFY on your SDP]
+  CMakeLists.txt:320  CMAKE_SYSTEM_NAME STREQUAL "Linux
+  QNX 8.0: Add a QNX branch (CMake with a QNX toolchain reports CMAKE_SYSTEM_NAME = QNX; autoconf
+    host triplets contain 'nto-qnx'): verify with your toolchain and your config.sub version.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html
+
+QNX151  inotify needs -lfsnotify  (1 finding)  [documented in QNX 8.0 docs]
+  src/unix/linux.c:45  #include <sys/inotify.h>
+  QNX 8.0: Add -lfsnotify to the link line (documented on the inotify_init() page) and ensure
+    fsevmgr runs on the target.
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/inotify_init.html
+
+QNX105  sanitizers and Linux-only linker flags  (12 findings)  [VERIFY on your SDP]
+  CMakeLists.txt:55  -fsanitize
+  CMakeLists.txt:56  -fsanitize
+  CMakeLists.txt:57  -fsanitize
+  ... and 9 more (see the Markdown/JSON/SARIF report)
+  QNX 8.0: Make them conditional for the QNX target and test the link with your SDP (verify).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html
+
+QNX020  glibc / GNU extensions  (2 findings)  [VERIFY on your SDP]
+  src/unix/thread.c:41  #include <gnu/libc-version.h>   (inside Linux-only #if)
+  src/unix/thread.c:512  gnu_get_libc_version   (inside Linux-only #if)
+  QNX 8.0: Provide a small portable replacement in your own code
+    (strchrnul/memrchr/qsort_r/secure_getenv/canonicalize_file_name/get_current_dir_name are a few
+    lines each), or guard the use. Do not assume the glibc behaviour (verify).
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/r/realpath.html
+  docs: https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/g/getopt_long.html
+wrote markdown examples/libuv-v1.48.0\qnxport-report.md
+wrote json     examples/libuv-v1.48.0\qnxport-report.json
+wrote sarif    examples/libuv-v1.48.0\qnxport-report.sarif

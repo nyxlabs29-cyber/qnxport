@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qnxport"
+version = "0.1.0"
+description = "Host-side porting assistant: scans a C/C++ Linux/POSIX project and reports what to change for QNX 8.0 (SARIF, Markdown, JSON, qcc/CMake scaffolds)."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "Nyx Agents Lab (AI agents, Claude)" }]
+keywords = ["qnx", "qnx-8.0", "porting", "static-analysis", "sarif", "posix", "embedded"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Software Development :: Build Tools",
+  "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/nyxlabs29-cyber/qnxport"
+
+[project.scripts]
+qnxport = "qnxport.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,1022 @@
+{
+  "tool": {
+    "name": "qnxport",
+    "version": "0.1.0",
+    "target": "QNX 8.0",
+    "qnx_docs_checked": "2026-11-06"
+  },
+  "scan": {
+    "name": "htop-3.3.0",
+    "source_files": 11,
+    "build_files": 2,
+    "lines": 5694,
+    "qnx_aware_files": [],
+    "suppressed_findings": 0
+  },
+  "summary": {
+    "by_severity": {
+      "high": 45,
+      "medium": 11,
+      "low": 0,
+      "info": 0
+    },
+    "by_base_severity": {
+      "high": 45,
+      "medium": 11,
+      "low": 0,
+      "info": 0
+    },
+    "total": 56,
+    "rules_triggered": 11,
+    "rules": {
+      "QNX008": {
+        "count": 7,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX013": {
+        "count": 1,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX014": {
+        "count": 8,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX022": {
+        "count": 6,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX017": {
+        "count": 2,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX029": {
+        "count": 20,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX035": {
+        "count": 1,
+        "files": 1,
+        "worst_severity": "high"
+      },
+      "QNX019": {
+        "count": 1,
+        "files": 1,
+        "worst_severity": "medium"
+      },
+      "QNX104": {
+        "count": 2,
+        "files": 1,
+        "worst_severity": "medium"
+      },
+      "QNX028": {
+        "count": 6,
+        "files": 2,
+        "worst_severity": "medium"
+      },
+      "QNX034": {
+        "count": 2,
+        "files": 1,
+        "worst_severity": "medium"
+      }
+    },
+    "top_files": [
+      {
+        "file": "linux/Platform.c",
+        "high_medium_findings": 23
+      },
+      {
+        "file": "linux/LinuxMachine.c",
+        "high_medium_findings": 11
+      },
+      {
+        "file": "Affinity.c",
+        "high_medium_findings": 8
+      },
+      {
+        "file": "linux/LinuxProcess.c",
+        "high_medium_findings": 6
+      },
+      {
+        "file": "linux/LinuxProcessTable.c",
+        "high_medium_findings": 4
+      },
+      {
+        "file": "configure.ac",
+        "high_medium_findings": 2
+      },
+      {
+        "file": "Compat.c",
+        "high_medium_findings": 1
+      },
+      {
+        "file": "linux/SystemdMeter.c",
+        "high_medium_findings": 1
+      }
+    ]
+  },
+  "rules": {
+    "QNX008": {
+      "title": "CPU affinity",
+      "category": "process",
+      "base_severity": "high",
+      "confidence": "documented",
+      "why": "sched_setaffinity / pthread_setaffinity_np and the CPU_* macros have no page in the QNX 8.0 C Library Reference.",
+      "qnx_8_0": "For the calling thread use ThreadCtl(_NTO_TCTL_RUNMASK, &mask) (also _NTO_TCTL_RUNMASK_GET_AND_SET and _NTO_TCTL_RUNMASK_GET_AND_SET_INHERIT); map CPU numbers to bits of the runmask. The ThreadCtl() page says the runmask commands can only be executed on the calling thread, so code that sets the affinity of ANOTHER thread or process (sched_setaffinity(pid, ...)) has no documented equivalent: the target thread must set its own runmask (verify). sched_getcpu() has no documented equivalent: verify.",
+      "docs": [
+        {
+          "title": "ThreadCtl()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/t/threadctl.html"
+        }
+      ]
+    },
+    "QNX013": {
+      "title": "/proc paths (Linux layout)",
+      "category": "system",
+      "base_severity": "high",
+      "confidence": "verify",
+      "why": "QNX has a /proc, but it is a process-manager namespace with its own layout, not Linux text files such as /proc/cpuinfo, /proc/meminfo, /proc/stat or /proc/<pid>/stat.",
+      "qnx_8_0": "Use the QNX /proc interface (devctl() with DCMD_PROC_* commands) described in the Programmer's Guide, sysconf(), or pidin-style queries instead of parsing Linux files. For the executable path, QNX provides /proc/self/exefile (verify on your target).",
+      "docs": [
+        {
+          "title": "Controlling processes via the /proc filesystem (Programmer's Guide)",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.prog/topic/process_proc_filesystem.html"
+        },
+        {
+          "title": "devctl()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html"
+        }
+      ]
+    },
+    "QNX014": {
+      "title": "/sys (sysfs) paths",
+      "category": "system",
+      "base_severity": "high",
+      "confidence": "verify",
+      "why": "QNX does not provide Linux sysfs. Paths such as /sys/class/gpio, /sys/class/net or /sys/devices have no QNX counterpart.",
+      "qnx_8_0": "Use the QNX driver/resource-manager interface for the device (GPIO, I2C, SPI, networking APIs, ...). Which one depends on your BSP: verify in the BSP documentation.",
+      "docs": [
+        {
+          "title": "devctl()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html"
+        }
+      ]
+    },
+    "QNX022": {
+      "title": "raw syscall() / SYS_* numbers",
+      "category": "process",
+      "base_severity": "high",
+      "confidence": "documented",
+      "why": "Linux system-call numbers do not exist on QNX; syscall() has no page in the QNX 8.0 C Library Reference.",
+      "qnx_8_0": "Call the libc/QNX API instead. syscall(SYS_gettid) -> gettid() (documented, <process.h>). Others: find the libc function, or QNX kernel call, that provides the feature.",
+      "docs": [
+        {
+          "title": "gettid()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/g/gettid.html"
+        }
+      ]
+    },
+    "QNX017": {
+      "title": "linux/ kernel UAPI headers",
+      "category": "headers",
+      "base_severity": "high",
+      "confidence": "verify",
+      "why": "#include <linux/...> headers (input, videodev2, i2c-dev, spidev, gpio, fb, netlink, ...) describe Linux kernel interfaces that QNX does not provide.",
+      "qnx_8_0": "Identify the device or service behind the header and use the matching QNX interface (resource manager devctl()/ioctl() commands, Screen, QNX Sound Architecture, hw/ headers of the BSP). The right header is device specific: verify in the BSP/SDK docs.",
+      "docs": [
+        {
+          "title": "devctl()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/d/devctl.html"
+        },
+        {
+          "title": "ioctl(), vioctl()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/i/ioctl.html"
+        }
+      ]
+    },
+    "QNX029": {
+      "title": "Linux capabilities",
+      "category": "security",
+      "base_severity": "high",
+      "confidence": "documented",
+      "why": "<sys/capability.h> and cap_*() (libcap) are Linux capabilities. QNX 8.0 uses process abilities.",
+      "qnx_8_0": "Use procmgr_ability() to grant/lock abilities (for example PROCMGR_AID_MEM_PHYS, PROCMGR_AID_SPAWN_SETUID, PROCMGR_AID_XPROCESS_ABLE, as listed on that page). Decide per capability which ability you need.",
+      "docs": [
+        {
+          "title": "procmgr_ability()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability.html"
+        },
+        {
+          "title": "procmgr_ability_create()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_ability_create.html"
+        }
+      ]
+    },
+    "QNX035": {
+      "title": "systemd / udev integration",
+      "category": "system",
+      "base_severity": "high",
+      "confidence": "verify",
+      "why": "<systemd/...> and <libudev.h> are Linux service/device-manager libraries.",
+      "qnx_8_0": "Replace service notification and device hotplug with the QNX equivalents for your system: process start-up via your boot scripts or system launch manager, procmgr_daemon() for daemonizing (documented) and QNX device managers. Make the dependency optional (verify design).",
+      "docs": [
+        {
+          "title": "procmgr_daemon()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/p/procmgr_daemon.html"
+        }
+      ]
+    },
+    "QNX019": {
+      "title": "Linux/glibc preprocessor guards",
+      "category": "portability",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "Code under #ifdef __linux__ / __GLIBC__ is not compiled by qcc for QNX, so such branches silently disappear and some #else branches may pick a BSD or generic path that was never tested on QNX.",
+      "qnx_8_0": "Add an explicit __QNXNTO__ (and/or __QNX__) branch, or restructure so the portable code path is the default. qcc predefines the QNX macros: confirm with 'qcc -V... -dM -E - < /dev/null' on your SDP (verify).",
+      "docs": [
+        {
+          "title": "qcc / q++ (Utilities Reference)",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html"
+        }
+      ]
+    },
+    "QNX104": {
+      "title": "OS detection that only knows Linux",
+      "category": "build",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "uname -s / CMAKE_SYSTEM_NAME / configure host checks branch on Linux; on a QNX cross build none of the Linux branches apply, and there may be no branch for QNX at all.",
+      "qnx_8_0": "Add a QNX branch (CMake with a QNX toolchain reports CMAKE_SYSTEM_NAME = QNX; autoconf host triplets contain 'nto-qnx'): verify with your toolchain and your config.sub version.",
+      "docs": [
+        {
+          "title": "qcc / q++ (Utilities Reference)",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.utilities/topic/q/qcc.html"
+        }
+      ]
+    },
+    "QNX028": {
+      "title": "Linux-only open() flags",
+      "category": "io",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "O_TMPFILE, O_PATH, O_NOATIME and O_DIRECT are Linux flags; support on QNX filesystems is not documented in the public C library pages searched.",
+      "qnx_8_0": "Use a mkstemp()+unlink() sequence for O_TMPFILE, drop O_NOATIME, and decide per filesystem about O_DIRECT. Verify each flag is defined in your SDP <fcntl.h>.",
+      "docs": [
+        {
+          "title": "mkostemp()",
+          "url": "https://www.qnx.com/developers/docs/8.0/com.qnx.doc.neutrino.lib_ref/topic/m/mkostemp.html"
+        }
+      ]
+    },
+    "QNX034": {
+      "title": "Linux socket options and netlink",
+      "category": "network",
+      "base_severity": "medium",
+      "confidence": "verify",
+      "why": "TCP_CORK, TCP_QUICKACK, TCP_USER_TIMEOUT, SO_BINDTODEVICE, MSG_MORE, AF_PACKET and AF_NETLINK are Linux networking features; the QNX networking stack is documented separately from the C Library Reference.",
+      "qnx_8_0": "Check each option in the QNX 8.0 networking documentation / your SDP <netinet/tcp.h>; BSD-style alternatives (for example TCP_NOPUSH for corking, routing sockets instead of netlink) are likely but must be verified.",
+      "docs": []
+    }
+  },
+  "findings": [
+    {
+      "rule": "QNX008",
+      "file": "Affinity.c",
+      "line": 91,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cpu_set_t"
+      ],
+      "snippet": "cpu_set_t cpuset;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "Affinity.c",
+      "line": 92,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sched_getaffinity",
+        "cpu_set_t"
+      ],
+      "snippet": "bool ok = (sched_getaffinity(Process_getPid(p), sizeof(cpu_set_t), &cpuset) == 0);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "Affinity.c",
+      "line": 98,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "CPU_ISSET"
+      ],
+      "snippet": "if (CPU_ISSET(i, &cpuset)) {",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "Affinity.c",
+      "line": 107,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cpu_set_t"
+      ],
+      "snippet": "cpu_set_t cpuset;",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "Affinity.c",
+      "line": 108,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "CPU_ZERO"
+      ],
+      "snippet": "CPU_ZERO(&cpuset);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "Affinity.c",
+      "line": 110,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "CPU_SET"
+      ],
+      "snippet": "CPU_SET(this->cpus[i], &cpuset);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX008",
+      "file": "Affinity.c",
+      "line": 112,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "sched_setaffinity"
+      ],
+      "snippet": "bool ok = (sched_setaffinity(Process_getPid(p), sizeof(unsigned long), &cpuset) == 0);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX013",
+      "file": "Compat.c",
+      "line": 136,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/proc/self/fd/%d\""
+      ],
+      "snippet": "xSnprintf(fdPath, sizeof(fdPath), \"/proc/self/fd/%d\", dirfd);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "linux/LinuxMachine.c",
+      "line": 61,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/devices/system/cpu\""
+      ],
+      "snippet": "DIR* dir = opendir(\"/sys/devices/system/cpu\");",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "linux/LinuxMachine.c",
+      "line": 86,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/devices/system/cpu/%s\""
+      ],
+      "snippet": "xSnprintf(cpuDirFd, sizeof(cpuDirFd), \"/sys/devices/system/cpu/%s\", entry->d_name);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "linux/LinuxMachine.c",
+      "line": 227,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/kernel/mm/hugepages\""
+      ],
+      "snippet": "DIR* dir = opendir(\"/sys/kernel/mm/hugepages\");",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "linux/LinuxMachine.c",
+      "line": 251,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/kernel/mm/hugepages/%s/nr_hugepages\""
+      ],
+      "snippet": "xSnprintf(hugePagePath, sizeof(hugePagePath), \"/sys/kernel/mm/hugepages/%s/nr_hugepages\", name);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "linux/LinuxMachine.c",
+      "line": 260,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/kernel/mm/hugepages/%s/free_hugepages\""
+      ],
+      "snippet": "xSnprintf(hugePagePath, sizeof(hugePagePath), \"/sys/kernel/mm/hugepages/%s/free_hugepages\", name);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "linux/LinuxMachine.c",
+      "line": 287,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/block/zram%u/mm_stat\""
+      ],
+      "snippet": "xSnprintf(mm_stat, sizeof(mm_stat), \"/sys/block/zram%u/mm_stat\", i);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "linux/LinuxMachine.c",
+      "line": 288,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/block/zram%u/disksize\""
+      ],
+      "snippet": "xSnprintf(disksize, sizeof(disksize), \"/sys/block/zram%u/disksize\", i);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX014",
+      "file": "linux/LinuxMachine.c",
+      "line": 525,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "\"/sys/devices/system/cpu/cpu%u/cpufreq/scaling_cur_freq\""
+      ],
+      "snippet": "xSnprintf(pathBuffer, sizeof(pathBuffer), \"/sys/devices/system/cpu/cpu%u/cpufreq/scaling_cur_freq\", i);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "linux/LinuxProcess.c",
+      "line": 151,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "SYS_ioprio_get",
+        "__NR_ioprio_get"
+      ],
+      "snippet": "#define SYS_ioprio_get __NR_ioprio_get",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "linux/LinuxProcess.c",
+      "line": 152,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "SYS_ioprio_set",
+        "__NR_ioprio_set"
+      ],
+      "snippet": "#define SYS_ioprio_set __NR_ioprio_set",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "linux/LinuxProcess.c",
+      "line": 158,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "SYS_ioprio_get"
+      ],
+      "snippet": "#ifdef SYS_ioprio_get",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "linux/LinuxProcess.c",
+      "line": 159,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "syscall",
+        "SYS_ioprio_get"
+      ],
+      "snippet": "ioprio = syscall(SYS_ioprio_get, IOPRIO_WHO_PROCESS, Process_getPid(p));",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "linux/LinuxProcess.c",
+      "line": 168,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "SYS_ioprio_set"
+      ],
+      "snippet": "#ifdef SYS_ioprio_set",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX022",
+      "file": "linux/LinuxProcess.c",
+      "line": 169,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "syscall",
+        "SYS_ioprio_set"
+      ],
+      "snippet": "syscall(SYS_ioprio_set, IOPRIO_WHO_PROCESS, Process_getPid(p), ioprio.i);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX017",
+      "file": "linux/LinuxProcessTable.c",
+      "line": 27,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "#include <linux/netlink.h>"
+      ],
+      "snippet": "#include <linux/netlink.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX017",
+      "file": "linux/LinuxProcessTable.c",
+      "line": 28,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "#include <linux/taskstats.h>"
+      ],
+      "snippet": "#include <linux/taskstats.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 68,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "#include <sys/capability.h>"
+      ],
+      "snippet": "#include <sys/capability.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 969,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "CAP_SYS_NICE"
+      ],
+      "snippet": "CAP_SYS_NICE,          /* lower process nice value / change nice value for arbitrary processes */",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 972,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "CAP_NET_ADMIN"
+      ],
+      "snippet": "CAP_NET_ADMIN,         /* communicate over netlink socket for delay accounting */",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 978,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_init"
+      ],
+      "snippet": "cap_t caps = cap_init();",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 986,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(caps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 990,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_get_proc"
+      ],
+      "snippet": "cap_t currCaps = cap_get_proc();",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 993,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(caps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1004,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(currCaps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1005,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(caps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1012,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_set_flag"
+      ],
+      "snippet": "if (cap_set_flag(caps, CAP_PERMITTED, 1, &keepcaps[i], CAP_SET) < 0) {",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1014,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(currCaps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1015,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(caps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1019,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_set_flag"
+      ],
+      "snippet": "if (cap_set_flag(caps, CAP_EFFECTIVE, 1, &keepcaps[i], CAP_SET) < 0) {",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1021,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(currCaps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1022,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(caps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1027,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_set_proc"
+      ],
+      "snippet": "if (cap_set_proc(caps) < 0) {",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1029,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(currCaps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1030,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(caps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1034,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(currCaps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX029",
+      "file": "linux/Platform.c",
+      "line": 1035,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "cap_free"
+      ],
+      "snippet": "cap_free(caps);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX035",
+      "file": "linux/SystemdMeter.c",
+      "line": 29,
+      "severity": "high",
+      "base_severity": "high",
+      "symbols": [
+        "#include <systemd/sd-bus.h>"
+      ],
+      "snippet": "#include <systemd/sd-bus.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX019",
+      "file": "Affinity.c",
+      "line": 22,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "__linux__"
+      ],
+      "snippet": "#ifdef __linux__",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX104",
+      "file": "configure.ac",
+      "line": 15,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "AC_CANONICAL_HOST"
+      ],
+      "snippet": "AC_CANONICAL_HOST",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX104",
+      "file": "configure.ac",
+      "line": 25,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "host_os"
+      ],
+      "snippet": "case \"$host_os\" in",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX028",
+      "file": "linux/LinuxMachine.c",
+      "line": 41,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "O_PATH"
+      ],
+      "snippet": "#ifndef O_PATH",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX028",
+      "file": "linux/LinuxMachine.c",
+      "line": 42,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "O_PATH"
+      ],
+      "snippet": "#define O_PATH         010000000 // declare for ancient glibc versions",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX028",
+      "file": "linux/LinuxMachine.c",
+      "line": 81,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "O_PATH"
+      ],
+      "snippet": "int cpuDirFd = openat(dirfd(dir), entry->d_name, O_DIRECTORY | O_PATH | O_NOFOLLOW);",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX034",
+      "file": "linux/LinuxProcessTable.c",
+      "line": 27,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "#include <linux/netlink.h>"
+      ],
+      "snippet": "#include <linux/netlink.h>",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX034",
+      "file": "linux/LinuxProcessTable.c",
+      "line": 195,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "NETLINK_GENERIC"
+      ],
+      "snippet": "if (nl_connect(this->netlink_socket, NETLINK_GENERIC) < 0) {",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX028",
+      "file": "linux/Platform.c",
+      "line": 75,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "O_PATH"
+      ],
+      "snippet": "#ifndef O_PATH",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX028",
+      "file": "linux/Platform.c",
+      "line": 76,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "O_PATH"
+      ],
+      "snippet": "#define O_PATH         010000000 // declare for ancient glibc versions",
+      "notes": [],
+      "linux_guarded": false
+    },
+    {
+      "rule": "QNX028",
+      "file": "linux/Platform.c",
+      "line": 773,
+      "severity": "medium",
+      "base_severity": "medium",
+      "symbols": [
+        "O_PATH"
+      ],
+      "snippet": "int entryFd = openat(dirfd(dir), entryName, O_DIRECTORY | O_PATH);",
+      "notes": [],
+      "linux_guarded": false
+    }
+  ],
+  "limitations": "qnxport is a static, pattern-based scan (comments and string literals are understood; no compiler or preprocessor run). It lists the places that need attention and a porting strategy backed by the public QNX 8.0 documentation. It cannot prove that a project builds or behaves correctly on QNX: compile with qcc, run on a QNX 8.0 target and test. Findings marked 'verify' name a likely strategy that could not be confirmed from the public documentation; check them against the headers and docs of your installed QNX SDP. 'Not in the QNX 8.0 C Library Reference' means no page was found for the function, not that the symbol is absent from your SDP."
+}

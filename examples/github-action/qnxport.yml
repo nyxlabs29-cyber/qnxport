@@ -1,0 +1,56 @@
+name: qnxport
+
+# Scans pull requests for constructs that need work to run on QNX 8.0 and
+# publishes the findings in the GitHub "Security > Code scanning" tab (SARIF).
+# Copy to .github/workflows/qnxport.yml in the repository you want to scan.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write   # required to upload SARIF
+
+jobs:
+  qnx-port-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install qnxport
+        run: pip install "git+https://github.com/nyxlabs29-cyber/qnxport.git@v0.1.0"
+
+      - name: Scan
+        # --fail-on high: the job fails if a new high-severity finding exists.
+        # Use --exclude for vendored code and  // qnxport:ignore QNX001  for accepted cases.
+        run: >
+          qnxport scan . --quiet
+          --sarif qnxport.sarif --md qnxport-report.md --json qnxport.json
+          --exclude 'third_party/*' --exclude 'vendor/*'
+          --fail-on high
+
+      - name: Job summary
+        if: always()
+        run: cat qnxport-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: qnxport.sarif
+          category: qnxport
+
+      - name: Keep reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qnxport-reports
+          path: |
+            qnxport.sarif
+            qnxport-report.md
+            qnxport.json

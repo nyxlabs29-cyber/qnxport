@@ -1,0 +1,34 @@
+# Host (Linux / WSL) build and test of the tutorial code. Nothing here needs QNX.
+#   make -f Makefile.host test
+# The QNX-native loop is built against the emulation shim in hostcheck/ (see its header).
+CC      ?= cc
+CFLAGS  ?= -std=gnu99 -Wall -Wextra -O2 -g
+LDLIBS  ?= -lpthread -lrt
+B       := build/host
+COMMON  := common/evcore.c common/main.c
+
+all: $(B)/evdemo-epoll $(B)/evdemo-poll $(B)/evdemo-qnx-shim $(B)/test_evcore
+
+$(B):
+	mkdir -p $(B)
+
+$(B)/evdemo-epoll: $(COMMON) linux/loop_epoll.c | $(B)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
+
+$(B)/evdemo-poll: $(COMMON) portable/loop_poll.c | $(B)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
+
+$(B)/evdemo-qnx-shim: $(COMMON) qnx/loop_qnx.c hostcheck/neutrino_shim.c | $(B)
+	$(CC) $(CFLAGS) -Ihostcheck/include -o $@ $^ $(LDLIBS)
+
+$(B)/test_evcore: test/test_evcore.c common/evcore.c | $(B)
+	$(CC) $(CFLAGS) -o $@ $^
+
+test: all
+	$(B)/test_evcore
+	sh test/run_scenarios.sh $(B)
+
+clean:
+	rm -rf build/host
+
+.PHONY: all test clean
