@@ -93,6 +93,8 @@ QNX001  epoll event loop  (21 findings)  [documented in QNX 8.0 docs]
 | SARIF 2.1.0 | `--sarif FILE` | GitHub code scanning (`github/codeql-action/upload-sarif`), each result has a stable fingerprint, level (error/warning/note), region and the QNX strategy |
 | all three | `--out-dir DIR` | |
 
+The SARIF for the Redis demo was uploaded to this repository's code-scanning API and GitHub reported `processing_status: complete` with no errors (2026-11-06), so the file is accepted by GitHub's SARIF ingestion.
+
 `--fail-on high|medium|low|info` sets a non-zero exit code for CI, `--exclude GLOB` skips vendored code, `--ignore RULE` disables a rule.
 
 ## Generators
